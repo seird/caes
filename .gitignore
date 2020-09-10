@@ -1,0 +1,7 @@
+.vscode
+*.o
+*.out
+*.out.*
+*.lst
+*.exe
+file_bench
