@@ -3,7 +3,7 @@
 [![pipeline status](https://gitlab.com/kdries/caes/badges/master/pipeline.svg)](https://gitlab.com/kdries/caes/commits/master)
 
 
-AES implementation in C and [Intel intrinsics](https://software.intel.com/sites/landingpage/IntrinsicsGuide/#cats=Cryptography).
+AES implementation in C with [Intel intrinsics](https://software.intel.com/sites/landingpage/IntrinsicsGuide/#cats=Cryptography).
 
 
 ## Modes
@@ -15,9 +15,79 @@ AES implementation in C and [Intel intrinsics](https://software.intel.com/sites/
 - AES-ECB-128/192/256
 
 
+## External Functions
+
+Intel intrinsics in `src/aesv.h`:
+
+```c
+/* aes modes */
+
+// AES-CTR
+void aesv_ctr_encrypt(uint8_t * data, size_t blocks, uint8_t * user_key, uint8_t IV[BLOCKSIZE], KeySize_t KeySize);
+void aesv_ctr_decrypt(uint8_t * data, size_t blocks, uint8_t * user_key, uint8_t IV[BLOCKSIZE], KeySize_t KeySize);
+void aesv_ctr_128_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[16], uint8_t IV[BLOCKSIZE]);
+void aesv_ctr_128_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[16], uint8_t IV[BLOCKSIZE]);
+void aesv_ctr_192_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[24], uint8_t IV[BLOCKSIZE]);
+void aesv_ctr_192_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[24], uint8_t IV[BLOCKSIZE]);
+void aesv_ctr_256_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[32], uint8_t IV[BLOCKSIZE]);
+void aesv_ctr_256_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[32], uint8_t IV[BLOCKSIZE]);
+
+// AES-ECB
+void aesv_ecb_encrypt(uint8_t * data, size_t blocks, uint8_t * user_key, KeySize_t KeySize);
+void aesv_ecb_decrypt(uint8_t * data, size_t blocks, uint8_t * user_key, KeySize_t KeySize);
+void aesv_ecb_128_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[16]);
+void aesv_ecb_128_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[16]);
+void aesv_ecb_192_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[24]);
+void aesv_ecb_192_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[24]);
+void aesv_ecb_256_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[32]);
+void aesv_ecb_256_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[32]);
+
+// AES-CFB
+void aesv_cfb_encrypt(uint8_t * data, size_t blocks, uint8_t * user_key, uint8_t IV[BLOCKSIZE], KeySize_t KeySize);
+void aesv_cfb_decrypt(uint8_t * data, size_t blocks, uint8_t * user_key, uint8_t IV[BLOCKSIZE], KeySize_t KeySize);
+void aesv_cfb_128_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[16], uint8_t IV[BLOCKSIZE]);
+void aesv_cfb_128_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[16], uint8_t IV[BLOCKSIZE]);
+void aesv_cfb_192_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[24], uint8_t IV[BLOCKSIZE]);
+void aesv_cfb_192_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[24], uint8_t IV[BLOCKSIZE]);
+void aesv_cfb_256_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[32], uint8_t IV[BLOCKSIZE]);
+void aesv_cfb_256_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[32], uint8_t IV[BLOCKSIZE]);
+
+// AES-OFB
+void aesv_ofb_encrypt(uint8_t * data, size_t blocks, uint8_t * user_key, uint8_t IV[BLOCKSIZE], KeySize_t KeySize);
+void aesv_ofb_decrypt(uint8_t * data, size_t blocks, uint8_t * user_key, uint8_t IV[BLOCKSIZE], KeySize_t KeySize);
+void aesv_ofb_128_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[16], uint8_t IV[BLOCKSIZE]);
+void aesv_ofb_128_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[16], uint8_t IV[BLOCKSIZE]);
+void aesv_ofb_192_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[24], uint8_t IV[BLOCKSIZE]);
+void aesv_ofb_192_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[24], uint8_t IV[BLOCKSIZE]);
+void aesv_ofb_256_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[32], uint8_t IV[BLOCKSIZE]);
+void aesv_ofb_256_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[32], uint8_t IV[BLOCKSIZE]);
+
+// AES-CBC
+void aesv_cbc_encrypt(uint8_t * data, size_t blocks, uint8_t * user_key, uint8_t IV[BLOCKSIZE], KeySize_t KeySize);
+void aesv_cbc_decrypt(uint8_t * data, size_t blocks, uint8_t * user_key, uint8_t IV[BLOCKSIZE], KeySize_t KeySize);
+void aesv_cbc_128_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[16], uint8_t IV[BLOCKSIZE]);
+void aesv_cbc_128_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[16], uint8_t IV[BLOCKSIZE]);
+void aesv_cbc_192_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[24], uint8_t IV[BLOCKSIZE]);
+void aesv_cbc_192_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[24], uint8_t IV[BLOCKSIZE]);
+void aesv_cbc_256_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[32], uint8_t IV[BLOCKSIZE]);
+void aesv_cbc_256_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[32], uint8_t IV[BLOCKSIZE]);
+```
+
+Plain C in `src/aes.h`:
+
+```c
+/* aes block encryption */
+
+#define aes_set_encrypt_key(RoundKeysEncrypt, user_key) KeyExpansion(RoundKeysEncrypt, user_key)
+#define aes_set_decrypt_key(RoundKeysDecrypt, user_key) KeyExpansion(RoundKeysDecrypt, user_key)
+void aes_encrypt(uint8_t state[BLOCKSIZE], uint8_t RoundKeysEncrypt[EXPANDEDSIZE]);
+void aes_decrypt(uint8_t state[BLOCKSIZE], uint8_t RoundKeysDecrypt[EXPANDEDSIZE]);
+```
+
+
 ## Benchmarks
 
-Time to encrypt / decrypt a 100MB file (no parallelization/threading):
+Time to encrypt / decrypt a 100MB file (no parallelization/threading, reading the file takes 0.03s):
 
 |                 | Encrypt  | Decrypt  |
 |-----------------|----------|---------:|
@@ -164,74 +234,4 @@ bench_aes_cbc_256_encrypt
 
 bench_aes_cbc_256_decrypt
 	  0.064000 seconds per run [0.639999 seconds total]
-```
-
-
-## External Functions
-
-Intel intrinsics in `src/aesv.h`:
-
-```c
-/* aes modes */
-
-// AES-CTR
-void aesv_ctr_encrypt(uint8_t * data, size_t blocks, uint8_t * user_key, uint8_t IV[BLOCKSIZE], KeySize_t KeySize);
-void aesv_ctr_decrypt(uint8_t * data, size_t blocks, uint8_t * user_key, uint8_t IV[BLOCKSIZE], KeySize_t KeySize);
-void aesv_ctr_128_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[16], uint8_t IV[BLOCKSIZE]);
-void aesv_ctr_128_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[16], uint8_t IV[BLOCKSIZE]);
-void aesv_ctr_192_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[24], uint8_t IV[BLOCKSIZE]);
-void aesv_ctr_192_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[24], uint8_t IV[BLOCKSIZE]);
-void aesv_ctr_256_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[32], uint8_t IV[BLOCKSIZE]);
-void aesv_ctr_256_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[32], uint8_t IV[BLOCKSIZE]);
-
-// AES-ECB
-void aesv_ecb_encrypt(uint8_t * data, size_t blocks, uint8_t * user_key, KeySize_t KeySize);
-void aesv_ecb_decrypt(uint8_t * data, size_t blocks, uint8_t * user_key, KeySize_t KeySize);
-void aesv_ecb_128_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[16]);
-void aesv_ecb_128_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[16]);
-void aesv_ecb_192_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[24]);
-void aesv_ecb_192_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[24]);
-void aesv_ecb_256_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[32]);
-void aesv_ecb_256_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[32]);
-
-// AES-CFB
-void aesv_cfb_encrypt(uint8_t * data, size_t blocks, uint8_t * user_key, uint8_t IV[BLOCKSIZE], KeySize_t KeySize);
-void aesv_cfb_decrypt(uint8_t * data, size_t blocks, uint8_t * user_key, uint8_t IV[BLOCKSIZE], KeySize_t KeySize);
-void aesv_cfb_128_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[16], uint8_t IV[BLOCKSIZE]);
-void aesv_cfb_128_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[16], uint8_t IV[BLOCKSIZE]);
-void aesv_cfb_192_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[24], uint8_t IV[BLOCKSIZE]);
-void aesv_cfb_192_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[24], uint8_t IV[BLOCKSIZE]);
-void aesv_cfb_256_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[32], uint8_t IV[BLOCKSIZE]);
-void aesv_cfb_256_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[32], uint8_t IV[BLOCKSIZE]);
-
-// AES-OFB
-void aesv_ofb_encrypt(uint8_t * data, size_t blocks, uint8_t * user_key, uint8_t IV[BLOCKSIZE], KeySize_t KeySize);
-void aesv_ofb_decrypt(uint8_t * data, size_t blocks, uint8_t * user_key, uint8_t IV[BLOCKSIZE], KeySize_t KeySize);
-void aesv_ofb_128_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[16], uint8_t IV[BLOCKSIZE]);
-void aesv_ofb_128_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[16], uint8_t IV[BLOCKSIZE]);
-void aesv_ofb_192_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[24], uint8_t IV[BLOCKSIZE]);
-void aesv_ofb_192_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[24], uint8_t IV[BLOCKSIZE]);
-void aesv_ofb_256_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[32], uint8_t IV[BLOCKSIZE]);
-void aesv_ofb_256_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[32], uint8_t IV[BLOCKSIZE]);
-
-// AES-CBC
-void aesv_cbc_encrypt(uint8_t * data, size_t blocks, uint8_t * user_key, uint8_t IV[BLOCKSIZE], KeySize_t KeySize);
-void aesv_cbc_decrypt(uint8_t * data, size_t blocks, uint8_t * user_key, uint8_t IV[BLOCKSIZE], KeySize_t KeySize);
-void aesv_cbc_128_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[16], uint8_t IV[BLOCKSIZE]);
-void aesv_cbc_128_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[16], uint8_t IV[BLOCKSIZE]);
-void aesv_cbc_192_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[24], uint8_t IV[BLOCKSIZE]);
-void aesv_cbc_192_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[24], uint8_t IV[BLOCKSIZE]);
-void aesv_cbc_256_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[32], uint8_t IV[BLOCKSIZE]);
-void aesv_cbc_256_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[32], uint8_t IV[BLOCKSIZE]);
-```
-
-Plain C in `src/aes.h`:
-
-```c
-/* aes block encryption */
-
-#define aes_set_encrypt_key(RoundKeysEncrypt, user_key) KeyExpansion(RoundKeysEncrypt, user_key)
-#define aes_set_decrypt_key(RoundKeysDecrypt, user_key) KeyExpansion(RoundKeysDecrypt, user_key)
-void aes_encrypt(uint8_t state[BLOCKSIZE], uint8_t RoundKeysEncrypt[EXPANDEDSIZE]);
-void aes_decrypt(uint8_t state[BLOCKSIZE], uint8_t RoundKeysDecrypt[EXPANDEDSIZE]);
 ```
