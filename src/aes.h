@@ -12,8 +12,8 @@
 
 
 void KeyExpansionCore(uint8_t inp[4], int i);
-void KeyExpansion(uint8_t RoundKeys[EXPANDEDSIZE], uint8_t user_key[BLOCKSIZE]);
-void AddRoundKey(uint8_t state[BLOCKSIZE], uint8_t user_key[BLOCKSIZE]);
+void KeyExpansion(uint8_t RoundKeys[EXPANDEDSIZE], uint8_t * user_key);
+void AddRoundKey(uint8_t state[BLOCKSIZE], uint8_t * user_key);
 void SubBytes(uint8_t state[BLOCKSIZE]);
 void InvSubBytes(uint8_t state[BLOCKSIZE]);
 void ShiftRows(uint8_t state[BLOCKSIZE]);

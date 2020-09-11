@@ -5,11 +5,11 @@
 /* AES-CTR */
 
 static void
-aesv_ctr(uint8_t * data, size_t blocks, __m128i RoundKeys[ROUNDS], uint8_t IV[BLOCKSIZE])
+aesv_ctr(uint8_t * data, size_t blocks, struct RoundKeys * RoundKeysEncrypt, uint8_t IV[BLOCKSIZE])
 {    
     for (size_t b=0; b<blocks; ++b) {
         // Encrypt IV
-        __m128i vIV_aes = aesv_encrypt(IV, RoundKeys);
+        __m128i vIV_aes = aesv_encrypt(IV, RoundKeysEncrypt);
 
         // data XOR (Encrypted IV)
         __m128i v_ciphertext = _mm_xor_si128(vIV_aes, _mm_loadu_si128((__m128i *)(data + b*BLOCKSIZE)));
@@ -24,59 +24,143 @@ aesv_ctr(uint8_t * data, size_t blocks, __m128i RoundKeys[ROUNDS], uint8_t IV[BL
 
 
 void
-aesv_ctr_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[BLOCKSIZE], uint8_t IV[BLOCKSIZE])
+aesv_ctr_encrypt(uint8_t * data, size_t blocks, uint8_t * user_key, uint8_t IV[BLOCKSIZE], KeySize_t KeySize)
 {
-    __m128i RoundKeysEncrypt[ROUNDS];
-    aesv_set_encrypt_key(RoundKeysEncrypt, user_key);
-    aesv_ctr(data, blocks, RoundKeysEncrypt, IV);
+    struct RoundKeys RoundKeysEncrypt;
+    aesv_set_encrypt_key(&RoundKeysEncrypt, user_key, KeySize);
+    aesv_ctr(data, blocks, &RoundKeysEncrypt, IV);
 }
 
 
 void
-aesv_ctr_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[BLOCKSIZE], uint8_t IV[BLOCKSIZE])
+aesv_ctr_decrypt(uint8_t * data, size_t blocks, uint8_t * user_key, uint8_t IV[BLOCKSIZE], KeySize_t KeySize)
 {
     // AES-CTR decrypt is the same as encryption
-    aesv_ctr_encrypt(data, blocks, user_key, IV);
+    aesv_ctr_encrypt(data, blocks, user_key, IV, KeySize);
+}
+
+
+void
+aesv_ctr_128_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[16], uint8_t IV[BLOCKSIZE])
+{
+    aesv_ctr_encrypt(data, blocks, user_key, IV, AES_128);
+}
+
+
+void
+aesv_ctr_128_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[16], uint8_t IV[BLOCKSIZE])
+{
+    aesv_ctr_decrypt(data, blocks, user_key, IV, AES_128);
+}
+
+
+void
+aesv_ctr_192_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[24], uint8_t IV[BLOCKSIZE])
+{
+    aesv_ctr_encrypt(data, blocks, user_key, IV, AES_192);
+}
+
+
+void
+aesv_ctr_192_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[24], uint8_t IV[BLOCKSIZE])
+{
+    aesv_ctr_decrypt(data, blocks, user_key, IV, AES_192);
+}
+
+
+void
+aesv_ctr_256_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[32], uint8_t IV[BLOCKSIZE])
+{
+    aesv_ctr_encrypt(data, blocks, user_key, IV, AES_256);
+}
+
+
+void
+aesv_ctr_256_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[32], uint8_t IV[BLOCKSIZE])
+{
+    aesv_ctr_decrypt(data, blocks, user_key, IV, AES_256);
 }
 
 
 /* AES-ECB */
 
 void
-aesv_ecb_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[BLOCKSIZE])
+aesv_ecb_encrypt(uint8_t * data, size_t blocks, uint8_t * user_key, KeySize_t KeySize)
 {
-    __m128i RoundKeysEncrypt[ROUNDS];
-    aesv_set_encrypt_key(RoundKeysEncrypt, user_key);
+    struct RoundKeys RoundKeysEncrypt;
+    aesv_set_encrypt_key(&RoundKeysEncrypt, user_key, KeySize);
     
     for (size_t b=0; b<blocks; ++b) {
-        aesvi_encrypt(data + b*BLOCKSIZE, RoundKeysEncrypt); // encrypt in place
+        aesvi_encrypt(data + b*BLOCKSIZE, &RoundKeysEncrypt); // encrypt in place
     }
 }
 
 
 void
-aesv_ecb_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[BLOCKSIZE])
+aesv_ecb_decrypt(uint8_t * data, size_t blocks, uint8_t * user_key, KeySize_t KeySize)
 {
-    __m128i RoundKeysDecrypt[ROUNDS];
-    aesv_set_decrypt_key(RoundKeysDecrypt, user_key);
+    struct RoundKeys RoundKeysDecrypt;
+    aesv_set_decrypt_key(&RoundKeysDecrypt, user_key, KeySize);
 
     for (size_t b=0; b<blocks; ++b) {
-        aesvi_decrypt(data + b*BLOCKSIZE, RoundKeysDecrypt); // decrypt in place
+        aesvi_decrypt(data + b*BLOCKSIZE, &RoundKeysDecrypt); // decrypt in place
     }
+}
+
+
+void
+aesv_ecb_128_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[16])
+{
+    aesv_ecb_encrypt(data, blocks, user_key, AES_128);
+}
+
+
+void
+aesv_ecb_128_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[16])
+{
+    aesv_ecb_decrypt(data, blocks, user_key, AES_128);
+}
+
+
+void
+aesv_ecb_192_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[24])
+{
+    aesv_ecb_encrypt(data, blocks, user_key, AES_192);
+}
+
+
+void
+aesv_ecb_192_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[24])
+{
+    aesv_ecb_decrypt(data, blocks, user_key, AES_192);
+}
+
+
+void
+aesv_ecb_256_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[32])
+{
+    aesv_ecb_encrypt(data, blocks, user_key, AES_256);
+}
+
+
+void
+aesv_ecb_256_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[32])
+{
+    aesv_ecb_decrypt(data, blocks, user_key, AES_256);
 }
 
 
 /* AES-CFB */
 
 void
-aesv_cfb_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[BLOCKSIZE], uint8_t IV[BLOCKSIZE])
+aesv_cfb_encrypt(uint8_t * data, size_t blocks, uint8_t * user_key, uint8_t IV[BLOCKSIZE], KeySize_t KeySize)
 {
-    __m128i RoundKeysEncrypt[ROUNDS];
-    aesv_set_encrypt_key(RoundKeysEncrypt, user_key);
+    struct RoundKeys RoundKeysEncrypt;
+    aesv_set_encrypt_key(&RoundKeysEncrypt, user_key, KeySize);
 
     uint8_t * block_in = IV;
     for (size_t b=0; b<blocks; ++b) {
-        __m128i block_out = aesv_encrypt(block_in, RoundKeysEncrypt);
+        __m128i block_out = aesv_encrypt(block_in, &RoundKeysEncrypt);
 
         // ciphertext = plaintext XOR block_out
         __m128i ciphertext = _mm_xor_si128(block_out, _mm_loadu_si128((__m128i *)(data + b*BLOCKSIZE)));
@@ -91,16 +175,16 @@ aesv_cfb_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[BLOCKSIZE], uin
 
 
 void
-aesv_cfb_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[BLOCKSIZE], uint8_t IV[BLOCKSIZE])
+aesv_cfb_decrypt(uint8_t * data, size_t blocks, uint8_t * user_key, uint8_t IV[BLOCKSIZE], KeySize_t KeySize)
 {
-    __m128i RoundKeysEncrypt[ROUNDS];
-    aesv_set_encrypt_key(RoundKeysEncrypt, user_key);
+    struct RoundKeys RoundKeysEncrypt;
+    aesv_set_encrypt_key(&RoundKeysEncrypt, user_key, KeySize);
 
     uint8_t block_in[BLOCKSIZE];
     memcpy(block_in, IV, BLOCKSIZE);
 
     for (size_t b=0; b<blocks; ++b) {
-        __m128i block_out = aesv_encrypt(block_in, RoundKeysEncrypt);
+        __m128i block_out = aesv_encrypt(block_in, &RoundKeysEncrypt);
 
         // plaintext = ciphertext XOR block_out
         __m128i plaintext = _mm_xor_si128(block_out, _mm_loadu_si128((__m128i *)(data + b*BLOCKSIZE)));
@@ -114,19 +198,61 @@ aesv_cfb_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[BLOCKSIZE], uin
 }
 
 
+void
+aesv_cfb_128_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[16], uint8_t IV[BLOCKSIZE])
+{
+    aesv_cfb_encrypt(data, blocks, user_key, IV, AES_128);
+}
+
+
+void
+aesv_cfb_128_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[16], uint8_t IV[BLOCKSIZE])
+{
+    aesv_cfb_decrypt(data, blocks, user_key, IV, AES_128);
+}
+
+
+void
+aesv_cfb_192_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[24], uint8_t IV[BLOCKSIZE])
+{
+    aesv_cfb_encrypt(data, blocks, user_key, IV, AES_192);
+}
+
+
+void
+aesv_cfb_192_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[24], uint8_t IV[BLOCKSIZE])
+{
+    aesv_cfb_decrypt(data, blocks, user_key, IV, AES_192);
+}
+
+
+void
+aesv_cfb_256_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[32], uint8_t IV[BLOCKSIZE])
+{
+    aesv_cfb_encrypt(data, blocks, user_key, IV, AES_256);
+}
+
+
+void
+aesv_cfb_256_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[32], uint8_t IV[BLOCKSIZE])
+{
+    aesv_cfb_decrypt(data, blocks, user_key, IV, AES_256);
+}
+
+
 /* AES-OFB */
 
 void
-aesv_ofb_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[BLOCKSIZE], uint8_t IV[BLOCKSIZE])
+aesv_ofb_encrypt(uint8_t * data, size_t blocks, uint8_t * user_key, uint8_t IV[BLOCKSIZE], KeySize_t KeySize)
 {
-    __m128i RoundKeysEncrypt[ROUNDS];
-    aesv_set_encrypt_key(RoundKeysEncrypt, user_key);
+    struct RoundKeys RoundKeysEncrypt;
+    aesv_set_encrypt_key(&RoundKeysEncrypt, user_key, KeySize);
 
     uint8_t block_in[BLOCKSIZE];
     memcpy(block_in, IV, BLOCKSIZE);
 
     for (size_t b=0; b<blocks; ++b) {
-        __m128i block_out = aesv_encrypt(block_in, RoundKeysEncrypt);
+        __m128i block_out = aesv_encrypt(block_in, &RoundKeysEncrypt);
 
         // ciphertext = plaintext XOR block_out
         __m128i ciphertext = _mm_xor_si128(block_out, _mm_loadu_si128((__m128i *)(data + b*BLOCKSIZE)));
@@ -141,16 +267,16 @@ aesv_ofb_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[BLOCKSIZE], uin
 
 
 void
-aesv_ofb_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[BLOCKSIZE], uint8_t IV[BLOCKSIZE])
+aesv_ofb_decrypt(uint8_t * data, size_t blocks, uint8_t * user_key, uint8_t IV[BLOCKSIZE], KeySize_t KeySize)
 {
-    __m128i RoundKeysEncrypt[ROUNDS];
-    aesv_set_encrypt_key(RoundKeysEncrypt, user_key);
+    struct RoundKeys RoundKeysEncrypt;
+    aesv_set_encrypt_key(&RoundKeysEncrypt, user_key, KeySize);
 
     uint8_t block_in[BLOCKSIZE];
     memcpy(block_in, IV, BLOCKSIZE);
 
     for (size_t b=0; b<blocks; ++b) {
-        __m128i block_out = aesv_encrypt(block_in, RoundKeysEncrypt);
+        __m128i block_out = aesv_encrypt(block_in, &RoundKeysEncrypt);
 
         // plaintext = ciphertext XOR block_out
         __m128i plaintext = _mm_xor_si128(block_out, _mm_loadu_si128((__m128i *)(data + b*BLOCKSIZE)));
@@ -164,13 +290,55 @@ aesv_ofb_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[BLOCKSIZE], uin
 }
 
 
+void
+aesv_ofb_128_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[16], uint8_t IV[BLOCKSIZE])
+{
+    aesv_ofb_encrypt(data, blocks, user_key, IV, AES_128);
+}
+
+
+void
+aesv_ofb_128_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[16], uint8_t IV[BLOCKSIZE])
+{
+    aesv_ofb_decrypt(data, blocks, user_key, IV, AES_128);
+}
+
+
+void
+aesv_ofb_192_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[24], uint8_t IV[BLOCKSIZE])
+{
+    aesv_ofb_encrypt(data, blocks, user_key, IV, AES_192);
+}
+
+
+void
+aesv_ofb_192_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[24], uint8_t IV[BLOCKSIZE])
+{
+    aesv_ofb_decrypt(data, blocks, user_key, IV, AES_192);
+}
+
+
+void
+aesv_ofb_256_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[32], uint8_t IV[BLOCKSIZE])
+{
+    aesv_ofb_encrypt(data, blocks, user_key, IV, AES_256);
+}
+
+
+void
+aesv_ofb_256_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[32], uint8_t IV[BLOCKSIZE])
+{
+    aesv_ofb_decrypt(data, blocks, user_key, IV, AES_256);
+}
+
+
 /* AES-CBC */
 
 void
-aesv_cbc_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[BLOCKSIZE], uint8_t IV[BLOCKSIZE])
+aesv_cbc_encrypt(uint8_t * data, size_t blocks, uint8_t * user_key, uint8_t IV[BLOCKSIZE], KeySize_t KeySize)
 {
-    __m128i RoundKeysEncrypt[ROUNDS];
-    aesv_set_encrypt_key(RoundKeysEncrypt, user_key);
+    struct RoundKeys RoundKeysEncrypt;
+    aesv_set_encrypt_key(&RoundKeysEncrypt, user_key, KeySize);
 
     __m128i xor_in = _mm_loadu_si128((__m128i *)IV);
     uint8_t block_in_bytes[BLOCKSIZE];
@@ -181,7 +349,7 @@ aesv_cbc_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[BLOCKSIZE], uin
         __m128i block_in = _mm_xor_si128(xor_in, _mm_loadu_si128((__m128i *)(data + b*BLOCKSIZE)));
         _mm_storeu_si128((__m128i *)block_in_bytes, block_in);
 
-        __m128i block_out = aesv_encrypt(block_in_bytes, RoundKeysEncrypt);
+        __m128i block_out = aesv_encrypt(block_in_bytes, &RoundKeysEncrypt);
 
         // Store the result
         _mm_storeu_si128((__m128i *)(data + b*BLOCKSIZE), block_out);
@@ -193,15 +361,15 @@ aesv_cbc_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[BLOCKSIZE], uin
 
 
 void
-aesv_cbc_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[BLOCKSIZE], uint8_t IV[BLOCKSIZE])
+aesv_cbc_decrypt(uint8_t * data, size_t blocks, uint8_t * user_key, uint8_t IV[BLOCKSIZE], KeySize_t KeySize)
 {
-    __m128i RoundKeysDecrypt[ROUNDS];
-    aesv_set_decrypt_key(RoundKeysDecrypt, user_key);
+    struct RoundKeys RoundKeysDecrypt;
+    aesv_set_decrypt_key(&RoundKeysDecrypt, user_key, KeySize);
 
     __m128i xor_in = _mm_loadu_si128((__m128i *)IV);
 
     for (size_t b=0; b<blocks; ++b) {
-        __m128i block_out = aesv_decrypt(data + b*BLOCKSIZE, RoundKeysDecrypt);
+        __m128i block_out = aesv_decrypt(data + b*BLOCKSIZE, &RoundKeysDecrypt);
 
         // plaintext = xor_in XOR block_out
         __m128i plaintext = _mm_xor_si128(block_out, xor_in);
@@ -212,4 +380,46 @@ aesv_cbc_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[BLOCKSIZE], uin
         // Store the result
         _mm_storeu_si128((__m128i *)(data + b*BLOCKSIZE), plaintext);
     }
+}
+
+
+void
+aesv_cbc_128_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[16], uint8_t IV[BLOCKSIZE])
+{
+    aesv_cbc_encrypt(data, blocks, user_key, IV, AES_128);
+}
+
+
+void
+aesv_cbc_128_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[16], uint8_t IV[BLOCKSIZE])
+{
+    aesv_cbc_decrypt(data, blocks, user_key, IV, AES_128);
+}
+
+
+void
+aesv_cbc_192_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[24], uint8_t IV[BLOCKSIZE])
+{
+    aesv_cbc_encrypt(data, blocks, user_key, IV, AES_192);
+}
+
+
+void
+aesv_cbc_192_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[24], uint8_t IV[BLOCKSIZE])
+{
+    aesv_cbc_decrypt(data, blocks, user_key, IV, AES_192);
+}
+
+
+void
+aesv_cbc_256_encrypt(uint8_t * data, size_t blocks, uint8_t user_key[32], uint8_t IV[BLOCKSIZE])
+{
+    aesv_cbc_encrypt(data, blocks, user_key, IV, AES_256);
+}
+
+
+void
+aesv_cbc_256_decrypt(uint8_t * data, size_t blocks, uint8_t user_key[32], uint8_t IV[BLOCKSIZE])
+{
+    aesv_cbc_decrypt(data, blocks, user_key, IV, AES_256);
 }

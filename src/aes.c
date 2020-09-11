@@ -20,7 +20,7 @@ KeyExpansionCore(uint8_t inp[4], int i)
 
 
 void
-KeyExpansion(uint8_t expanded_key[EXPANDEDSIZE], uint8_t user_key[BLOCKSIZE])
+KeyExpansion(uint8_t expanded_key[EXPANDEDSIZE], uint8_t * user_key)
 {
     // __m128i _mm_aeskeygenassist_si128 (__m128i a, const int imm8)
 
