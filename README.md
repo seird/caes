@@ -17,7 +17,7 @@ AES implementation in C with [Intel intrinsics](https://software.intel.com/sites
 
 ## Exmaple
 
-Encrpt/decrypt a file:
+Encrypt/decrypt a file:
 
 ```c
 #include "aes.h"
@@ -56,8 +56,8 @@ typedef enum Mode {
 } Mode_t;
 
 
-void aes_encrypt(uint8_t * data, size_t size, char * passphrase, Salt_t * salt, Mode_t aes_mode, KeySize_t key_size);
-void aes_decrypt(uint8_t * data, size_t size, char * passphrase, Salt_t * salt, Mode_t aes_mode, KeySize_t key_size);
+void aes_encrypt(uint8_t * data, size_t size, char * passphrase, Mode_t aes_mode, KeySize_t key_size, Salt_t * salt);
+void aes_decrypt(uint8_t * data, size_t size, char * passphrase, Mode_t aes_mode, KeySize_t key_size, Salt_t * salt);
 void aes_encrypt_file(char * filename, char * savename, char * passphrase, Mode_t aes_mode, KeySize_t key_size);
 void aes_decrypt_file(char * filename, char * savename, char * passphrase, Mode_t aes_mode, KeySize_t key_size);
 ```

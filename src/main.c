@@ -32,8 +32,8 @@ main(void)
     memset(data, 0xab, size);
     memcpy(reference, data, size);
 
-    aes_encrypt(data, size, passphrase, &salt, aes_mode, key_size);
-    aes_decrypt(data, size, passphrase, &salt, aes_mode, key_size);
+    aes_encrypt(data, size, passphrase, aes_mode, key_size, &salt);
+    aes_decrypt(data, size, passphrase, aes_mode, key_size, &salt);
 
     free(salt);
 

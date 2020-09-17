@@ -351,7 +351,7 @@ decrypt_fptr_t get_decrypt_fptr(Mode_t aes_mode)
 
 
 void
-aes_encrypt(uint8_t * data, size_t size, char * passphrase, Salt_t * salt, Mode_t aes_mode, KeySize_t key_size)
+aes_encrypt(uint8_t * data, size_t size, char * passphrase, Mode_t aes_mode, KeySize_t key_size, Salt_t * salt)
 {
     encrypt_fptr_t fptr = get_encrypt_fptr(aes_mode);
 
@@ -369,7 +369,7 @@ aes_encrypt(uint8_t * data, size_t size, char * passphrase, Salt_t * salt, Mode_
 
 
 void
-aes_decrypt(uint8_t * data, size_t size, char * passphrase, Salt_t * salt, Mode_t aes_mode, KeySize_t key_size)
+aes_decrypt(uint8_t * data, size_t size, char * passphrase, Mode_t aes_mode, KeySize_t key_size, Salt_t * salt)
 {
     decrypt_fptr_t fptr = get_decrypt_fptr(aes_mode);
 
