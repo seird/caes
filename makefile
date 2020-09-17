@@ -1,15 +1,19 @@
 CC = gcc
-CFLAGS_DEBUG = -g -Wall -Wextra -mavx2 -maes #-shared
-CFLAGS_RELEASE = -O3 -Wall -Wextra -mavx2 -maes #-shared
+CFLAGS_DEBUG = -g -Wall -Wextra -mavx2 -maes -pthread -D_FILE_OFFSET_BITS=64 #-shared
+CFLAGS_RELEASE = -O3 -Wall -Wextra -mavx2 -maes -pthread -D_FILE_OFFSET_BITS=64 #-shared
+SRC = src/*.c src/argon2/argon2.c src/argon2/core.c src/argon2/blake2/blake2b.c src/argon2/thread.c src/argon2/encoding.c src/argon2/opt.c
+SRC_TEST = $(SRC) tests/*.c
+SRC_BENCH = $(SRC) benchmark/*.c
+
 
 build: 
-	$(CC) $(CFLAGS_RELEASE) src/*.c -o a_release.exe
+	$(CC) $(CFLAGS_RELEASE) $(SRC) -o a_release.exe
 
 run: build
 	./a_release.exe
 
 debug:
-	$(CC) $(CFLAGS_DEBUG) src/*.c -o a_debug.exe 
+	$(CC) $(CFLAGS_DEBUG) $(SRC) -o a_debug.exe 
 
 profile: debug
 	valgrind --tool=callgrind ./a_debug.exe
@@ -22,11 +26,11 @@ cache: build
 	#cg_annotate cachegrind.out.{PID}
 
 test:
-	$(CC) $(CFLAGS_RELEASE) -DTEST tests/*.c src/*.c -o test.exe
+	$(CC) $(CFLAGS_RELEASE) -DTEST $(SRC_TEST) -o test.exe
 	./test.exe
 
 bench:
-	$(CC) $(CFLAGS_RELEASE) -DBENCHMARK benchmark/*.c src/*.c -o benchmark.exe
+	$(CC) $(CFLAGS_RELEASE) -DBENCHMARK $(SRC_BENCH) -o benchmark.exe
 	./benchmark.exe
 
 clean:

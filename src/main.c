@@ -1,24 +1,56 @@
-#include <stdio.h>
+#include <time.h>
+
 #include "aes.h"
-#include "aesv.h"
 
 
 #if (!defined(TEST) && !defined(SHARED) && !defined(BENCHMARK))
+
+
+static void
+print_array(uint8_t * data, size_t size)
+{
+    for (size_t i=0; i<size; ++i) {
+        printf("%02x ", data[i]);
+    } printf("\n");
+}
+
+
 int
 main(void)
 {
-    // Test vectors
-    uint8_t key[] = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f";
+    srand(time(NULL));
 
-    uint8_t plaintext[BLOCKSIZE] = "\x00\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff";
-    uint8_t ciphertext[BLOCKSIZE] = "\x69\xc4\xe0\xd8\x6a\x7b\x04\x30\xd8\xcd\xb7\x80\x70\xb4\xc5\x5a";
+    Mode_t aes_mode = AES_CTR;
+    KeySize_t key_size = AES_256;
+    char passphrase[] = "hunter2";
 
-    struct RoundKeys RoundKeysEncrypt;
-    aesv_set_encrypt_key(&RoundKeysEncrypt, key, 11);
+    // Encrypt data
+    Salt_t salt;
+    size_t size = 2*BLOCKSIZE+3;
+    uint8_t data[size];
+    uint8_t reference[size];
+    memset(data, 0xab, size);
+    memcpy(reference, data, size);
 
-    // Encrypt
-    aesvi_encrypt(plaintext, &RoundKeysEncrypt);
+    aes_encrypt(data, size, passphrase, &salt, aes_mode, key_size);
+    aes_decrypt(data, size, passphrase, &salt, aes_mode, key_size);
 
-    printf("encrypted %s ciphertext\n", (memcmp(plaintext, ciphertext, BLOCKSIZE) == 0) ? "==" : "!=");
+    free(salt);
+
+    if (memcmp(reference, data, size)) {
+        printf("Fail:\n");
+        printf("reference plaintext:\n");
+        print_array(reference, size);
+        printf("decrypted plaintext:\n");
+        print_array(data, size);
+    } else {
+        printf("Success.\n");
+    }
+
+    // Encrypt a file
+    aes_encrypt_file("./images/in.jpg", "out.jpg.aes", passphrase, aes_mode, key_size);
+    aes_decrypt_file("out.jpg.aes", "out.jpg", passphrase, aes_mode, key_size);
+    
+    return 0;    
 }
 #endif

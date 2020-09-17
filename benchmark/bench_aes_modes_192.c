@@ -1,7 +1,5 @@
 #include "benchmarks.h"
-
 #include "../src/aes.h"
-#include "../src/aesv.h"
 
 
 static void
@@ -32,7 +30,7 @@ BENCH_FUNC(bench_aes_ctr_192_encrypt)
     read_file_bytes(&data, &bytes_read);
     size_t blocks = (size_t) bytes_read / BLOCKSIZE;
     
-    aesv_ctr_192_encrypt(data, blocks, key, IV);
+    aes_ctr_192_encrypt(data, blocks, key, IV);
 
     free(data);
 }
@@ -49,7 +47,7 @@ BENCH_FUNC(bench_aes_ctr_192_decrypt)
     read_file_bytes(&data, &bytes_read);
     size_t blocks = (size_t) bytes_read / BLOCKSIZE;
     
-    aesv_ctr_192_decrypt(data, blocks, key, IV);
+    aes_ctr_192_decrypt(data, blocks, key, IV);
 
     free(data);
 }
@@ -66,7 +64,7 @@ BENCH_FUNC(bench_aes_cfb_192_encrypt)
     read_file_bytes(&data, &bytes_read);
     size_t blocks = (size_t) bytes_read / BLOCKSIZE;
     
-    aesv_cfb_192_encrypt(data, blocks, key, IV);
+    aes_cfb_192_encrypt(data, blocks, key, IV);
 
     free(data);
 }
@@ -83,7 +81,7 @@ BENCH_FUNC(bench_aes_cfb_192_decrypt)
     read_file_bytes(&data, &bytes_read);
     size_t blocks = (size_t) bytes_read / BLOCKSIZE;
     
-    aesv_cfb_192_decrypt(data, blocks, key, IV);
+    aes_cfb_192_decrypt(data, blocks, key, IV);
 
     free(data);
 }
@@ -100,7 +98,7 @@ BENCH_FUNC(bench_aes_ofb_192_encrypt)
     read_file_bytes(&data, &bytes_read);
     size_t blocks = (size_t) bytes_read / BLOCKSIZE;
     
-    aesv_ofb_192_encrypt(data, blocks, key, IV);
+    aes_ofb_192_encrypt(data, blocks, key, IV);
 
     free(data);
 }
@@ -117,7 +115,7 @@ BENCH_FUNC(bench_aes_ofb_192_decrypt)
     read_file_bytes(&data, &bytes_read);
     size_t blocks = (size_t) bytes_read / BLOCKSIZE;
     
-    aesv_ofb_192_decrypt(data, blocks, key, IV);
+    aes_ofb_192_decrypt(data, blocks, key, IV);
 
     free(data);
 }
@@ -133,7 +131,7 @@ BENCH_FUNC(bench_aes_ecb_192_encrypt)
     read_file_bytes(&data, &bytes_read);
     size_t blocks = (size_t) bytes_read / BLOCKSIZE;
     
-    aesv_ecb_192_encrypt(data, blocks, key);
+    aes_ecb_192_encrypt(data, blocks, key);
 
     free(data);
 }
@@ -149,7 +147,7 @@ BENCH_FUNC(bench_aes_ecb_192_decrypt)
     read_file_bytes(&data, &bytes_read);
     size_t blocks = (size_t) bytes_read / BLOCKSIZE;
     
-    aesv_ecb_192_decrypt(data, blocks, key);
+    aes_ecb_192_decrypt(data, blocks, key);
 
     free(data);
 }
@@ -166,7 +164,7 @@ BENCH_FUNC(bench_aes_cbc_192_encrypt)
     read_file_bytes(&data, &bytes_read);
     size_t blocks = (size_t) bytes_read / BLOCKSIZE;
     
-    aesv_cbc_192_encrypt(data, blocks, key, IV);
+    aes_cbc_192_encrypt(data, blocks, key, IV);
 
     free(data);
 }
@@ -183,7 +181,7 @@ BENCH_FUNC(bench_aes_cbc_192_decrypt)
     read_file_bytes(&data, &bytes_read);
     size_t blocks = (size_t) bytes_read / BLOCKSIZE;
     
-    aesv_cbc_192_decrypt(data, blocks, key, IV);
+    aes_cbc_192_decrypt(data, blocks, key, IV);
 
     free(data);
 }

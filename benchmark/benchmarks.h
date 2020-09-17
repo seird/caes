@@ -5,15 +5,12 @@
 #include "benchmark.h"
 
 
-BENCH_FUNC(bench_aes_block_encrypt);
-BENCH_FUNC(bench_aes_block_decrypt);
-
-BENCH_FUNC(bench_aesvi_intrinsic_block_128_encrypt);
-BENCH_FUNC(bench_aesvi_intrinsic_block_128_decrypt);
-BENCH_FUNC(bench_aesvi_intrinsic_block_192_encrypt);
-BENCH_FUNC(bench_aesvi_intrinsic_block_192_decrypt);
-BENCH_FUNC(bench_aesvi_intrinsic_block_256_encrypt);
-BENCH_FUNC(bench_aesvi_intrinsic_block_256_decrypt);
+BENCH_FUNC(bench_aesi_intrinsic_block_128_encrypt);
+BENCH_FUNC(bench_aesi_intrinsic_block_128_decrypt);
+BENCH_FUNC(bench_aesi_intrinsic_block_192_encrypt);
+BENCH_FUNC(bench_aesi_intrinsic_block_192_decrypt);
+BENCH_FUNC(bench_aesi_intrinsic_block_256_encrypt);
+BENCH_FUNC(bench_aesi_intrinsic_block_256_decrypt);
 
 BENCH_FUNC(bench_aes_ctr_128_encrypt);
 BENCH_FUNC(bench_aes_ctr_128_decrypt);

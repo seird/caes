@@ -1,254 +1,499 @@
 #include "aes.h"
-#include "lookup_tables.h"
+#include "utils.h"
 
 
-void
-KeyExpansionCore(uint8_t inp[4], int i)
+static __m128i
+AES_128_ASSIST(__m128i temp1, __m128i temp2)
 {
-    // Rotate inp left and s_box lookup
-    uint8_t tmp[4];
-    tmp[0] = s_box[inp[1]];
-    tmp[1] = s_box[inp[2]];
-    tmp[2] = s_box[inp[3]];
-    tmp[3] = s_box[inp[0]];
+    __m128i temp3;
+    temp2 = _mm_shuffle_epi32(temp2 ,0xff);
+    temp3 = _mm_slli_si128(temp1, 0x4);
+    temp1 = _mm_xor_si128(temp1, temp3);
+    temp3 = _mm_slli_si128(temp3, 0x4);
+    temp1 = _mm_xor_si128(temp1, temp3);
+    temp3 = _mm_slli_si128(temp3, 0x4);
+    temp1 = _mm_xor_si128(temp1, temp3);
+    temp1 = _mm_xor_si128(temp1, temp2);
+    return temp1;
+}
 
-    memcpy(inp, tmp, 4);
 
-    // Rcon lookup
-    inp[0] ^= rcon[i];
+static void
+KEY_192_ASSIST(__m128i * temp1, __m128i * temp2, __m128i * temp3)
+{
+    __m128i temp4;
+    *temp2 = _mm_shuffle_epi32(*temp2, 0x55);
+    temp4 = _mm_slli_si128(*temp1, 0x4);
+    *temp1 = _mm_xor_si128(*temp1, temp4);
+    temp4 = _mm_slli_si128(temp4, 0x4);
+    *temp1 = _mm_xor_si128(*temp1, temp4);
+    temp4 = _mm_slli_si128(temp4, 0x4);
+    *temp1 = _mm_xor_si128(*temp1, temp4);
+    *temp1 = _mm_xor_si128(*temp1, *temp2);
+    *temp2 = _mm_shuffle_epi32(*temp1, 0xff);
+    temp4 = _mm_slli_si128(*temp3, 0x4);
+    *temp3 = _mm_xor_si128(*temp3, temp4);
+    *temp3 = _mm_xor_si128(*temp3, *temp2);
+}
+
+
+static void
+KEY_256_ASSIST_1(__m128i * temp1, __m128i * temp2)
+{
+    __m128i temp4;
+    *temp2 = _mm_shuffle_epi32(*temp2, 0xff);
+    temp4 = _mm_slli_si128(*temp1, 0x4);
+    *temp1 = _mm_xor_si128(*temp1, temp4);
+    temp4 = _mm_slli_si128(temp4, 0x4);
+    *temp1 = _mm_xor_si128(*temp1, temp4);
+    temp4 = _mm_slli_si128(temp4, 0x4);
+    *temp1 = _mm_xor_si128(*temp1, temp4);
+    *temp1 = _mm_xor_si128(*temp1, *temp2);
+}
+
+
+static void
+KEY_256_ASSIST_2(__m128i * temp1, __m128i * temp3)
+{
+    __m128i temp2,temp4;
+    temp4 = _mm_aeskeygenassist_si128(*temp1, 0x0);
+    temp2 = _mm_shuffle_epi32(temp4, 0xaa);
+    temp4 = _mm_slli_si128(*temp3, 0x4);
+    *temp3 = _mm_xor_si128(*temp3, temp4);
+    temp4 = _mm_slli_si128(temp4, 0x4);
+    *temp3 = _mm_xor_si128(*temp3, temp4);
+    temp4 = _mm_slli_si128(temp4, 0x4);
+    *temp3 = _mm_xor_si128(*temp3, temp4);
+    *temp3 = _mm_xor_si128(*temp3, temp2);
 }
 
 
 void
-KeyExpansion(uint8_t expanded_key[EXPANDEDSIZE], uint8_t * user_key)
+aes_set_encrypt_key(struct RoundKeys * RoundKeysEncrypt, uint8_t * user_key, KeySize_t KeySize)
 {
-    // __m128i _mm_aeskeygenassist_si128 (__m128i a, const int imm8)
+    int rounds;
+    switch (KeySize) {
+        case AES_128: {
+            aes_128:
+            rounds = 11;
+            RoundKeysEncrypt->rounds = rounds;
+            RoundKeysEncrypt->RoundKeys = malloc(sizeof(__m128i) * rounds);
+            RoundKeysEncrypt->RoundKeys[0] = _mm_loadu_si128((__m128i *)user_key);
 
-    // The first BLOCKSIZE is the original key
-    memcpy(expanded_key, user_key, BLOCKSIZE);
-
-    int rcon_iteration = 1;
-    int current_size = BLOCKSIZE;
-
-    while (current_size < EXPANDEDSIZE) {
-        uint8_t tmp[4];
-        memcpy(tmp, &expanded_key[current_size-4], 4);
-
-        if ((current_size % BLOCKSIZE) == 0) {
-            KeyExpansionCore(tmp, rcon_iteration);
-            rcon_iteration += 1;
+            // 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36
+            RoundKeysEncrypt->RoundKeys[1]  = AES_128_ASSIST(RoundKeysEncrypt->RoundKeys[0], _mm_aeskeygenassist_si128(RoundKeysEncrypt->RoundKeys[0], 0x01));
+            RoundKeysEncrypt->RoundKeys[2]  = AES_128_ASSIST(RoundKeysEncrypt->RoundKeys[1], _mm_aeskeygenassist_si128(RoundKeysEncrypt->RoundKeys[1], 0x02));
+            RoundKeysEncrypt->RoundKeys[3]  = AES_128_ASSIST(RoundKeysEncrypt->RoundKeys[2], _mm_aeskeygenassist_si128(RoundKeysEncrypt->RoundKeys[2], 0x04));
+            RoundKeysEncrypt->RoundKeys[4]  = AES_128_ASSIST(RoundKeysEncrypt->RoundKeys[3], _mm_aeskeygenassist_si128(RoundKeysEncrypt->RoundKeys[3], 0x08));
+            RoundKeysEncrypt->RoundKeys[5]  = AES_128_ASSIST(RoundKeysEncrypt->RoundKeys[4], _mm_aeskeygenassist_si128(RoundKeysEncrypt->RoundKeys[4], 0x10));
+            RoundKeysEncrypt->RoundKeys[6]  = AES_128_ASSIST(RoundKeysEncrypt->RoundKeys[5], _mm_aeskeygenassist_si128(RoundKeysEncrypt->RoundKeys[5], 0x20));
+            RoundKeysEncrypt->RoundKeys[7]  = AES_128_ASSIST(RoundKeysEncrypt->RoundKeys[6], _mm_aeskeygenassist_si128(RoundKeysEncrypt->RoundKeys[6], 0x40));
+            RoundKeysEncrypt->RoundKeys[8]  = AES_128_ASSIST(RoundKeysEncrypt->RoundKeys[7], _mm_aeskeygenassist_si128(RoundKeysEncrypt->RoundKeys[7], 0x80));
+            RoundKeysEncrypt->RoundKeys[9]  = AES_128_ASSIST(RoundKeysEncrypt->RoundKeys[8], _mm_aeskeygenassist_si128(RoundKeysEncrypt->RoundKeys[8], 0x1b));
+            RoundKeysEncrypt->RoundKeys[10] = AES_128_ASSIST(RoundKeysEncrypt->RoundKeys[9], _mm_aeskeygenassist_si128(RoundKeysEncrypt->RoundKeys[9], 0x36));
+            break;
         }
+        case AES_192: {
+            rounds = 13;
+            RoundKeysEncrypt->rounds = rounds;
+            RoundKeysEncrypt->RoundKeys = malloc(sizeof(__m128i) * rounds);
+            RoundKeysEncrypt->RoundKeys[0] = _mm_loadu_si128((__m128i *)user_key);
 
-        for (int i=0; i<4; ++i) {
-            expanded_key[current_size] = expanded_key[current_size-BLOCKSIZE] ^ tmp[i];
-            current_size += 1;
+            __m128i temp1, temp2, temp3;            
+            temp1 = _mm_loadu_si128((__m128i*)user_key);
+            temp3 = _mm_loadu_si128((__m128i*)(user_key+16));
+            RoundKeysEncrypt->RoundKeys[0]=temp1;
+            RoundKeysEncrypt->RoundKeys[1]=temp3;
+            temp2=_mm_aeskeygenassist_si128 (temp3,0x1);
+            KEY_192_ASSIST(&temp1, &temp2, &temp3);
+            RoundKeysEncrypt->RoundKeys[1] = (__m128i)_mm_shuffle_pd((__m128d)RoundKeysEncrypt->RoundKeys[1], (__m128d)temp1,0);
+            RoundKeysEncrypt->RoundKeys[2] = (__m128i)_mm_shuffle_pd((__m128d)temp1,(__m128d)temp3,1);
+            temp2=_mm_aeskeygenassist_si128 (temp3,0x2);
+            KEY_192_ASSIST(&temp1, &temp2, &temp3);
+            RoundKeysEncrypt->RoundKeys[3]=temp1;
+            RoundKeysEncrypt->RoundKeys[4]=temp3;
+            temp2=_mm_aeskeygenassist_si128 (temp3,0x4);
+            KEY_192_ASSIST(&temp1, &temp2, &temp3);
+            RoundKeysEncrypt->RoundKeys[4] = (__m128i)_mm_shuffle_pd((__m128d)RoundKeysEncrypt->RoundKeys[4], (__m128d)temp1,0);
+            RoundKeysEncrypt->RoundKeys[5] = (__m128i)_mm_shuffle_pd((__m128d)temp1,(__m128d)temp3,1);
+            temp2=_mm_aeskeygenassist_si128 (temp3,0x8);
+            KEY_192_ASSIST(&temp1, &temp2, &temp3);
+            RoundKeysEncrypt->RoundKeys[6]=temp1;
+            RoundKeysEncrypt->RoundKeys[7]=temp3;
+            temp2=_mm_aeskeygenassist_si128 (temp3,0x10);
+            KEY_192_ASSIST(&temp1, &temp2, &temp3);
+            RoundKeysEncrypt->RoundKeys[7] = (__m128i)_mm_shuffle_pd((__m128d)RoundKeysEncrypt->RoundKeys[7], (__m128d)temp1,0);
+            RoundKeysEncrypt->RoundKeys[8] = (__m128i)_mm_shuffle_pd((__m128d)temp1,(__m128d)temp3,1);
+            temp2=_mm_aeskeygenassist_si128 (temp3,0x20);
+            KEY_192_ASSIST(&temp1, &temp2, &temp3);
+            RoundKeysEncrypt->RoundKeys[9]=temp1;
+            RoundKeysEncrypt->RoundKeys[10]=temp3;
+            temp2=_mm_aeskeygenassist_si128 (temp3,0x40);
+            KEY_192_ASSIST(&temp1, &temp2, &temp3);
+            RoundKeysEncrypt->RoundKeys[10] = (__m128i)_mm_shuffle_pd((__m128d)RoundKeysEncrypt->RoundKeys[10], (__m128d)temp1,0);
+            RoundKeysEncrypt->RoundKeys[11] = (__m128i)_mm_shuffle_pd((__m128d)temp1,(__m128d)temp3,1);
+            temp2=_mm_aeskeygenassist_si128 (temp3,0x80);
+            KEY_192_ASSIST(&temp1, &temp2, &temp3);
+            RoundKeysEncrypt->RoundKeys[12]=temp1;
+            break;
         }
+        case AES_256: {
+            rounds = 15;
+            RoundKeysEncrypt->rounds = rounds;
+            RoundKeysEncrypt->RoundKeys = malloc(sizeof(__m128i) * rounds);
+            RoundKeysEncrypt->RoundKeys[0] = _mm_loadu_si128((__m128i *)user_key);
+
+            __m128i temp1, temp2, temp3;
+            temp1 = _mm_loadu_si128((__m128i*)user_key);
+            temp3 = _mm_loadu_si128((__m128i*)(user_key+16));
+            RoundKeysEncrypt->RoundKeys[0] = temp1;
+            RoundKeysEncrypt->RoundKeys[1] = temp3;
+            temp2 = _mm_aeskeygenassist_si128 (temp3,0x01);
+            KEY_256_ASSIST_1(&temp1, &temp2);
+            RoundKeysEncrypt->RoundKeys[2]=temp1;
+            KEY_256_ASSIST_2(&temp1, &temp3);
+            RoundKeysEncrypt->RoundKeys[3]=temp3;
+            temp2 = _mm_aeskeygenassist_si128 (temp3,0x02);
+            KEY_256_ASSIST_1(&temp1, &temp2);
+            RoundKeysEncrypt->RoundKeys[4]=temp1;
+            KEY_256_ASSIST_2(&temp1, &temp3);
+            RoundKeysEncrypt->RoundKeys[5]=temp3;
+            temp2 = _mm_aeskeygenassist_si128 (temp3,0x04);
+            KEY_256_ASSIST_1(&temp1, &temp2);
+            RoundKeysEncrypt->RoundKeys[6]=temp1;
+            KEY_256_ASSIST_2(&temp1, &temp3);
+            RoundKeysEncrypt->RoundKeys[7]=temp3;
+            temp2 = _mm_aeskeygenassist_si128 (temp3,0x08);
+            KEY_256_ASSIST_1(&temp1, &temp2);
+            RoundKeysEncrypt->RoundKeys[8]=temp1;
+            KEY_256_ASSIST_2(&temp1, &temp3);
+            RoundKeysEncrypt->RoundKeys[9]=temp3;
+            temp2 = _mm_aeskeygenassist_si128 (temp3,0x10);
+            KEY_256_ASSIST_1(&temp1, &temp2);
+            RoundKeysEncrypt->RoundKeys[10]=temp1;
+            KEY_256_ASSIST_2(&temp1, &temp3);
+            RoundKeysEncrypt->RoundKeys[11]=temp3;
+            temp2 = _mm_aeskeygenassist_si128 (temp3,0x20);
+            KEY_256_ASSIST_1(&temp1, &temp2);
+            RoundKeysEncrypt->RoundKeys[12]=temp1;
+            KEY_256_ASSIST_2(&temp1, &temp3);
+            RoundKeysEncrypt->RoundKeys[13]=temp3;
+            temp2 = _mm_aeskeygenassist_si128 (temp3,0x40);
+            KEY_256_ASSIST_1(&temp1, &temp2);
+            RoundKeysEncrypt->RoundKeys[14]=temp1;
+            break;
+        }
+        default: 
+            goto aes_128;
     }
 }
 
 
 void
-AddRoundKey(uint8_t state[BLOCKSIZE], uint8_t key[BLOCKSIZE])
+aes_set_decrypt_key(struct RoundKeys * RoundKeysDecrypt, uint8_t * user_key, KeySize_t KeySize)
 {
-    for (int i=0; i<BLOCKSIZE; ++i) {
-        state[i] ^= key[i];
+    struct RoundKeys RoundKeysEncrypt;
+    aes_set_encrypt_key(&RoundKeysEncrypt, user_key, KeySize);
+    size_t rounds = RoundKeysEncrypt.rounds;
+    RoundKeysDecrypt->RoundKeys = malloc(sizeof(__m128i) * rounds);
+    RoundKeysDecrypt->rounds = rounds;
+
+    RoundKeysDecrypt->RoundKeys[0] = RoundKeysEncrypt.RoundKeys[rounds-1];
+    for (size_t i=1; i<rounds-1; ++i) {
+        RoundKeysDecrypt->RoundKeys[i] = _mm_aesimc_si128(RoundKeysEncrypt.RoundKeys[rounds-i-1]);
     }
+    RoundKeysDecrypt->RoundKeys[rounds-1] = RoundKeysEncrypt.RoundKeys[0];
 }
 
 
 void
-SubBytes(uint8_t state[BLOCKSIZE])
+aesi_block_encrypt(uint8_t state[BLOCKSIZE], struct RoundKeys * RoundKeysEncrypt)
 {
-    for (int i=0; i<BLOCKSIZE; ++i) 
-        state[i] = s_box[state[i]];
-}
+    size_t rounds = RoundKeysEncrypt->rounds;
+    __m128i vstate = _mm_loadu_si128((__m128i *)state);
 
-
-void
-InvSubBytes(uint8_t state[BLOCKSIZE])
-{
-    for (int i=0; i<BLOCKSIZE; ++i) 
-        state[i] = inv_s_box[state[i]];
-}
-
-
-void
-ShiftRows(uint8_t state[BLOCKSIZE])
-{
-    /*
-    Cyclic shift to the left of the state rows
-    row 0: 0 shifts
-    row 1: 1 shift
-    row 2: 2 shifts
-    row 3: 3 shifts
-    */
-    uint8_t tmp[BLOCKSIZE];
-
-    tmp[0]  = state[0];
-    tmp[1]  = state[5];
-    tmp[2]  = state[10];
-    tmp[3]  = state[15];
-    tmp[4]  = state[4];
-    tmp[5]  = state[9];
-    tmp[6]  = state[14];
-    tmp[7]  = state[3];
-    tmp[8]  = state[8];
-    tmp[9]  = state[13];
-    tmp[10] = state[2];
-    tmp[11] = state[7];
-    tmp[12] = state[12];
-    tmp[13] = state[1];
-    tmp[14] = state[6];
-    tmp[15] = state[11];
-
-    memcpy(state, tmp, BLOCKSIZE);
-}
-
-
-void
-InvShiftRows(uint8_t state[BLOCKSIZE])
-{
-    /*
-    Cyclic shift to the right of the state rows
-    row 0: 0 shifts
-    row 1: 1 shift
-    row 2: 2 shifts
-    row 3: 3 shifts
-    */
-    uint8_t tmp[BLOCKSIZE];
-
-    tmp[0]  = state[0];
-    tmp[1]  = state[13];
-    tmp[2]  = state[10];
-    tmp[3]  = state[7];
-    tmp[4]  = state[4];
-    tmp[5]  = state[1];
-    tmp[6]  = state[14];
-    tmp[7]  = state[11];
-    tmp[8]  = state[8];
-    tmp[9]  = state[5];
-    tmp[10] = state[2];
-    tmp[11] = state[15];
-    tmp[12] = state[12];
-    tmp[13] = state[9];
-    tmp[14] = state[6];
-    tmp[15] = state[3];
-
-    memcpy(state, tmp, BLOCKSIZE);
-}
-
-
-void
-MixColumns(uint8_t state[BLOCKSIZE])
-{
-    /*
-    2   3   1   1
-    1   2   3   1
-    1   1   2   2
-    3   1   1   2
-
-    Multiplication and reduction result can be found in lookup table mul2 and mul3. Multiplication by 1 is the same.
-    */
-    uint8_t tmp[BLOCKSIZE];
-
-    tmp[0] = mul2[state[0]] ^ mul3[state[1]] ^ state[2] ^ state[3];
-    tmp[1] = state[0] ^ mul2[state[1]] ^ mul3[state[2]] ^ state[3];
-    tmp[2] = state[0] ^ state[1] ^ mul2[state[2]] ^ mul3[state[3]];
-    tmp[3] = mul3[state[0]] ^ state[1] ^ state[2] ^ mul2[state[3]];
-
-    tmp[4] = mul2[state[4]] ^ mul3[state[5]] ^ state[6] ^ state[7];
-    tmp[5] = state[4] ^ mul2[state[5]] ^ mul3[state[6]] ^ state[7];
-    tmp[6] = state[4] ^ state[5] ^ mul2[state[6]] ^ mul3[state[7]];
-    tmp[7] = mul3[state[4]] ^ state[5] ^ state[6] ^ mul2[state[7]];
-
-    tmp[8] = mul2[state[8]] ^ mul3[state[9]] ^ state[10] ^ state[11];
-    tmp[9] = state[8] ^ mul2[state[9]] ^ mul3[state[10]] ^ state[11];
-    tmp[10] = state[8] ^ state[9] ^ mul2[state[10]] ^ mul3[state[11]];
-    tmp[11] = mul3[state[8]] ^ state[9] ^ state[10] ^ mul2[state[11]];
-
-    tmp[12] = mul2[state[12]] ^ mul3[state[13]] ^ state[14] ^ state[15];
-    tmp[13] = state[12] ^ mul2[state[13]] ^ mul3[state[14]] ^ state[15];
-    tmp[14] = state[12] ^ state[13] ^ mul2[state[14]] ^ mul3[state[15]];
-    tmp[15] = mul3[state[12]] ^ state[13] ^ state[14] ^ mul2[state[15]];
-
-    memcpy(state, tmp, BLOCKSIZE);
-}
-
-
-void
-InvMixColumns(uint8_t state[BLOCKSIZE])
-{
-    /*
-    14  11  13  9
-    9   14  11  13
-    13  9   14  11
-    11  13  9   14
-
-    Multiplication and reduction result can be found in lookup table mul9, mul11, mul13 and mul14.
-    */
-    uint8_t tmp[BLOCKSIZE];
-
-    tmp[0] = mul14[state[0]] ^ mul11[state[1]] ^ mul13[state[2]] ^ mul9[state[3]];
-    tmp[1] = mul9[state[0]] ^ mul14[state[1]] ^ mul11[state[2]] ^ mul13[state[3]];
-    tmp[2] = mul13[state[0]] ^ mul9[state[1]] ^ mul14[state[2]] ^ mul11[state[3]];
-    tmp[3] = mul11[state[0]] ^ mul13[state[1]] ^ mul9[state[2]] ^ mul14[state[3]];
-
-    tmp[4] = mul14[state[4]] ^ mul11[state[5]] ^ mul13[state[6]] ^ mul9[state[7]];
-    tmp[5] = mul9[state[4]] ^ mul14[state[5]] ^ mul11[state[6]] ^ mul13[state[7]];
-    tmp[6] = mul13[state[4]] ^ mul9[state[5]] ^ mul14[state[6]] ^ mul11[state[7]];
-    tmp[7] = mul11[state[4]] ^ mul13[state[5]] ^ mul9[state[6]] ^ mul14[state[7]];
-
-    tmp[8] = mul14[state[8]] ^ mul11[state[9]] ^ mul13[state[10]] ^ mul9[state[11]];
-    tmp[9] = mul9[state[8]] ^ mul14[state[9]] ^ mul11[state[10]] ^ mul13[state[11]];
-    tmp[10] = mul13[state[8]] ^ mul9[state[9]] ^ mul14[state[10]] ^ mul11[state[11]];
-    tmp[11] = mul11[state[8]] ^ mul13[state[9]] ^ mul9[state[10]] ^ mul14[state[11]];
-
-    tmp[12] = mul14[state[12]] ^ mul11[state[13]] ^ mul13[state[14]] ^ mul9[state[15]];
-    tmp[13] = mul9[state[12]] ^ mul14[state[13]] ^ mul11[state[14]] ^ mul13[state[15]];
-    tmp[14] = mul13[state[12]] ^ mul9[state[13]] ^ mul14[state[14]] ^ mul11[state[15]];
-    tmp[15] = mul11[state[12]] ^ mul13[state[13]] ^ mul9[state[14]] ^ mul14[state[15]];
-
-    memcpy(state, tmp, BLOCKSIZE);
-}
-
-
-void
-aes_encrypt(uint8_t state[BLOCKSIZE], uint8_t RoundKeysEncrypt[EXPANDEDSIZE])
-{
     // Initial round
-    AddRoundKey(state, RoundKeysEncrypt);
+    vstate = _mm_xor_si128(vstate, RoundKeysEncrypt->RoundKeys[0]);
 
     // Main rounds
-    for (int i=1; i<ROUNDS-1; ++i) {
-        ShiftRows(state);
-        SubBytes(state);
-        MixColumns(state);
-        AddRoundKey(state, &RoundKeysEncrypt[i*BLOCKSIZE]);
+    for (size_t i=1; i<rounds-1; ++i) {
+        vstate = _mm_aesenc_si128(vstate, RoundKeysEncrypt->RoundKeys[i]);
     }
 
     // Final round
-    ShiftRows(state);
-    SubBytes(state);
-    AddRoundKey(state, &RoundKeysEncrypt[(ROUNDS-1)*BLOCKSIZE]);
+    vstate = _mm_aesenclast_si128(vstate, RoundKeysEncrypt->RoundKeys[rounds-1]);
+
+    // Store the result
+    _mm_storeu_si128((__m128i *)state, vstate);
 }
 
 
 void
-aes_decrypt(uint8_t state[BLOCKSIZE], uint8_t RoundKeysDecrypt[EXPANDEDSIZE])
+aesi_block_decrypt(uint8_t state[BLOCKSIZE], struct RoundKeys * RoundKeysDecrypt)
 {
+    size_t rounds = RoundKeysDecrypt->rounds;
+    __m128i vstate = _mm_loadu_si128((__m128i *)state);
+
     // Initial round
-    AddRoundKey(state, &RoundKeysDecrypt[(ROUNDS-1)*BLOCKSIZE]);
-    InvSubBytes(state);
-    InvShiftRows(state);
+    vstate = _mm_xor_si128(vstate, RoundKeysDecrypt->RoundKeys[0]);
 
     // Main rounds
-    for (int i=ROUNDS-2; i>0; --i) {
-        AddRoundKey(state, &RoundKeysDecrypt[i*BLOCKSIZE]);
-        InvMixColumns(state);
-        InvSubBytes(state);
-        InvShiftRows(state);
+    for (size_t i=1; i<rounds-1; ++i) {
+        vstate = _mm_aesdec_si128(vstate, RoundKeysDecrypt->RoundKeys[i]);
     }
 
     // Final round
-    AddRoundKey(state, RoundKeysDecrypt);
+    vstate = _mm_aesdeclast_si128(vstate, RoundKeysDecrypt->RoundKeys[rounds-1]);
+
+    // Store the result
+    _mm_storeu_si128((__m128i *)state, vstate);
+}
+
+
+__m128i
+aes_block_encrypt(uint8_t state[BLOCKSIZE], struct RoundKeys * RoundKeysEncrypt)
+{
+    size_t rounds = RoundKeysEncrypt->rounds;
+    __m128i vstate = _mm_loadu_si128((__m128i *)state);
+
+    // Initial round
+    vstate = _mm_xor_si128(vstate, RoundKeysEncrypt->RoundKeys[0]);
+
+    // Main rounds
+    for (size_t i=1; i<rounds-1; ++i) {
+        vstate = _mm_aesenc_si128(vstate, RoundKeysEncrypt->RoundKeys[i]);
+    }
+
+    // Final round
+    vstate = _mm_aesenclast_si128(vstate, RoundKeysEncrypt->RoundKeys[rounds-1]);
+
+    // Return the result
+    return vstate;
+}
+
+
+__m128i
+aes_block_decrypt(uint8_t state[BLOCKSIZE], struct RoundKeys * RoundKeysDecrypt)
+{
+    size_t rounds = RoundKeysDecrypt->rounds;
+    __m128i vstate = _mm_loadu_si128((__m128i *)state);
+
+    // Initial round
+    vstate = _mm_xor_si128(vstate, RoundKeysDecrypt->RoundKeys[0]);
+
+    // Main rounds
+    for (size_t i=1; i<rounds-1; ++i) {
+        vstate = _mm_aesdec_si128(vstate, RoundKeysDecrypt->RoundKeys[i]);
+    }
+
+    // Final round
+    vstate = _mm_aesdeclast_si128(vstate, RoundKeysDecrypt->RoundKeys[rounds-1]);
+
+    // Return the result
+    return vstate;
+}
+
+
+static
+encrypt_fptr_t get_encrypt_fptr(Mode_t aes_mode)
+{
+    encrypt_fptr_t fptr = NULL;
+    switch (aes_mode)
+    {
+    case AES_CTR:
+        fptr = aes_ctr_encrypt;
+        break;
+    case AES_CBC:
+        fptr = aes_cbc_encrypt;
+        break;
+    case AES_CFB:
+        fptr = aes_cfb_encrypt;
+        break;
+    case AES_OFB:
+        fptr = aes_ofb_encrypt;
+        break;
+    case AES_ECB:
+        fptr = aes_ecb_encrypt;
+        break;
+    default:
+        fptr = aes_ctr_encrypt;
+    }
+    return fptr;
+}
+
+
+static
+decrypt_fptr_t get_decrypt_fptr(Mode_t aes_mode)
+{
+    decrypt_fptr_t fptr = NULL;
+    switch (aes_mode)
+    {
+    case AES_CTR:
+        fptr = aes_ctr_decrypt;
+        break;
+    case AES_CBC:
+        fptr = aes_cbc_decrypt;
+        break;
+    case AES_CFB:
+        fptr = aes_cfb_decrypt;
+        break;
+    case AES_OFB:
+        fptr = aes_ofb_decrypt;
+        break;
+    case AES_ECB:
+        fptr = aes_ecb_decrypt;
+        break;
+    default:
+        fptr = aes_ctr_decrypt;
+    }
+    return fptr;
+}
+
+
+void
+aes_encrypt(uint8_t * data, size_t size, char * passphrase, Salt_t * salt, Mode_t aes_mode, KeySize_t key_size)
+{
+    encrypt_fptr_t fptr = get_encrypt_fptr(aes_mode);
+
+    size_t blocks = size / BLOCKSIZE;
+    // size_t remainder_bytes = size - blocks*BLOCKSIZE;
+
+    uint8_t user_key[key_size];
+    uint8_t IV[BLOCKSIZE];
+    *salt = (Salt_t) malloc(SALTSIZE);
+    random_bytes(*salt, SALTSIZE);
+    derive_key_iv(passphrase, key_size, *salt, SALTSIZE, user_key, IV);
+
+    fptr(data, blocks, user_key, IV, key_size);
+}
+
+
+void
+aes_decrypt(uint8_t * data, size_t size, char * passphrase, Salt_t * salt, Mode_t aes_mode, KeySize_t key_size)
+{
+    decrypt_fptr_t fptr = get_decrypt_fptr(aes_mode);
+
+    size_t blocks = size / BLOCKSIZE;
+    // size_t remainder_bytes = size - blocks*BLOCKSIZE;
+
+    uint8_t user_key[key_size];
+    uint8_t IV[BLOCKSIZE];    
+    derive_key_iv(passphrase, key_size, *salt, SALTSIZE, user_key, IV);
+
+    fptr(data, blocks, user_key, IV, key_size);
+}
+
+
+void
+aes_encrypt_file(char * filename, char * savename, char * passphrase, Mode_t aes_mode, KeySize_t key_size)
+{
+    encrypt_fptr_t fptr = get_encrypt_fptr(aes_mode);
+
+    // setup in/out files
+    FILE * f_in = NULL;
+    size_t f_in_size;
+
+    open_file(filename, &f_in, &f_in_size);
+    if (f_in == NULL) return;
+    if (f_in_size == 0) return;
+
+    size_t blocks = f_in_size / BLOCKSIZE;
+
+    uint8_t * data = malloc((blocks >= BLOCKS_PER_ITERATION) ? (BLOCKS_PER_ITERATION*BLOCKSIZE) : (blocks*BLOCKSIZE));
+
+    // FILE * f_out = fopen64(savename, "wb");
+    FILE * f_out = fopen(savename, "wb");
+    if (f_out == NULL) return;
+
+    // derive key and IV
+    uint8_t user_key[key_size];
+    uint8_t IV[BLOCKSIZE];
+    uint8_t salt[SALTSIZE];
+    random_bytes(salt, SALTSIZE);
+    derive_key_iv(passphrase, key_size, salt, SALTSIZE, user_key, IV);
+
+    // write the salt to the output file
+    fwrite(salt, 1, SALTSIZE, f_out);
+
+    // do the encryption
+    size_t i = 0;
+    while (i < (blocks/BLOCKS_PER_ITERATION)) { // handle large files
+        if (fread(data, 1, BLOCKS_PER_ITERATION*BLOCKSIZE, f_in)) {
+            fptr(data, BLOCKS_PER_ITERATION, user_key, IV, key_size);
+            fwrite(data, 1, BLOCKS_PER_ITERATION*BLOCKSIZE, f_out);
+        }
+        ++i;
+    }
+
+    // encrypt the remainder blocks
+    size_t remainder_bytes = f_in_size - (blocks/BLOCKS_PER_ITERATION)*BLOCKSIZE*BLOCKS_PER_ITERATION;
+    if (remainder_bytes) {
+        if (fread(data, 1, remainder_bytes, f_in)) {
+            fptr(data, remainder_bytes/BLOCKSIZE, user_key, IV, key_size);
+            fwrite(data, 1, remainder_bytes, f_out);
+        }
+    }
+
+    free(data);
+
+    fclose(f_in);
+    fclose(f_out);
+}
+
+
+void
+aes_decrypt_file(char * filename, char * savename, char * passphrase, Mode_t aes_mode, KeySize_t key_size)
+{
+    decrypt_fptr_t fptr = get_decrypt_fptr(aes_mode);
+
+    FILE * f_in = NULL;
+    size_t f_in_size;
+
+    open_file(filename, &f_in, &f_in_size);
+    if (f_in == NULL) return;
+    if (f_in_size <= SALTSIZE) return;
+
+
+    f_in_size -= SALTSIZE;
+    size_t blocks = f_in_size / BLOCKSIZE;
+
+    uint8_t * data = malloc((blocks >= BLOCKS_PER_ITERATION) ? (BLOCKS_PER_ITERATION*BLOCKSIZE) : (blocks*BLOCKSIZE));
+
+    // FILE * f_out = fopen64(savename, "wb");
+    FILE * f_out = fopen(savename, "wb");
+    if (f_out == NULL) return;
+    if (f_in_size == 0) return;
+
+    // read the salt from f_in
+    uint8_t salt[SALTSIZE];
+    if (!fread(salt, 1, SALTSIZE, f_in)) return;
+
+    // derive key and IV
+    uint8_t user_key[key_size];
+    uint8_t IV[BLOCKSIZE];
+    derive_key_iv(passphrase, key_size, salt, SALTSIZE, user_key, IV);
+
+    // do the decryption
+    size_t i = 0;
+    while (i < (blocks/BLOCKS_PER_ITERATION)) { // handle large files
+        if (fread(data, 1, BLOCKS_PER_ITERATION*BLOCKSIZE, f_in)) {
+            fptr(data, BLOCKS_PER_ITERATION, user_key, IV, key_size);
+            fwrite(data, 1, BLOCKS_PER_ITERATION*BLOCKSIZE, f_out);
+        }
+        ++i;
+    }
+
+    // encrypt the remainder: TODO padding
+    size_t remainder_bytes = f_in_size - (blocks/BLOCKS_PER_ITERATION)*BLOCKSIZE*BLOCKS_PER_ITERATION;
+    if (remainder_bytes) {
+        if (fread(data, 1, remainder_bytes, f_in)) {
+            fptr(data, remainder_bytes/BLOCKSIZE, user_key, IV, key_size);
+            fwrite(data, 1, remainder_bytes, f_out);
+        }
+    }
+    
+    free(data);
+
+    fclose(f_in);
+    fclose(f_out);
 }

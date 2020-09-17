@@ -13,16 +13,13 @@ main(void)
     printf("\n===========================================================\n");
     printf("AES BLOCKS ...");
     printf("\n===========================================================\n");
-
-    BENCH_RUN(bench_aes_block_encrypt, num_runs);
-    BENCH_RUN(bench_aes_block_decrypt, num_runs);
-
-    BENCH_RUN(bench_aesvi_intrinsic_block_128_encrypt, num_runs);
-    BENCH_RUN(bench_aesvi_intrinsic_block_128_decrypt, num_runs);
-    BENCH_RUN(bench_aesvi_intrinsic_block_192_encrypt, num_runs);
-    BENCH_RUN(bench_aesvi_intrinsic_block_192_decrypt, num_runs);
-    BENCH_RUN(bench_aesvi_intrinsic_block_256_encrypt, num_runs);
-    BENCH_RUN(bench_aesvi_intrinsic_block_256_decrypt, num_runs);
+    
+    BENCH_RUN(bench_aesi_intrinsic_block_128_encrypt, num_runs);
+    BENCH_RUN(bench_aesi_intrinsic_block_128_decrypt, num_runs);
+    BENCH_RUN(bench_aesi_intrinsic_block_192_encrypt, num_runs);
+    BENCH_RUN(bench_aesi_intrinsic_block_192_decrypt, num_runs);
+    BENCH_RUN(bench_aesi_intrinsic_block_256_encrypt, num_runs);
+    BENCH_RUN(bench_aesi_intrinsic_block_256_decrypt, num_runs);
 
     printf("\n===========================================================\n");
     printf("AES MODES ...");

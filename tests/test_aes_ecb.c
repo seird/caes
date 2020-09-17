@@ -1,9 +1,8 @@
 #include "tests.h"
 #include "../src/aes.h"
-#include "../src/aesv.h"
 
 
-MU_TEST(test_aesv_ecb_128_encrypt)
+MU_TEST(test_aes_ecb_128_encrypt)
 {
     // test vectors
     uint8_t key[] = "\x2b\x7e\x15\x16\x28\xae\xd2\xa6\xab\xf7\x15\x88\x09\xcf\x4f\x3c";
@@ -18,13 +17,13 @@ MU_TEST(test_aesv_ecb_128_encrypt)
 
     uint8_t * d = plaintext;
     
-    aesv_ecb_128_encrypt(d, 4, key); // encrypt plaintext in place
+    aes_ecb_128_encrypt(d, 4, key); // encrypt plaintext in place
 
     MU_CHECK(memcmp(d, ciphertext, 4*BLOCKSIZE) == 0);
 }
 
 
-MU_TEST(test_aesv_ecb_128_decrypt)
+MU_TEST(test_aes_ecb_128_decrypt)
 {
     // test vectors
     uint8_t key[] = "\x2b\x7e\x15\x16\x28\xae\xd2\xa6\xab\xf7\x15\x88\x09\xcf\x4f\x3c";
@@ -39,13 +38,13 @@ MU_TEST(test_aesv_ecb_128_decrypt)
 
     uint8_t * d = ciphertext;
     
-    aesv_ecb_128_decrypt(d, 4, key); // decrypt ciphertext in place
+    aes_ecb_128_decrypt(d, 4, key); // decrypt ciphertext in place
 
     MU_CHECK(memcmp(d, plaintext, 4*BLOCKSIZE) == 0);
 }
 
 
-MU_TEST(test_aesv_ecb_192_encrypt)
+MU_TEST(test_aes_ecb_192_encrypt)
 {
     // test vectors
     uint8_t key[] = "\x8e\x73\xb0\xf7\xda\x0e\x64\x52\xc8\x10\xf3\x2b\x80\x90\x79\xe5"
@@ -61,13 +60,13 @@ MU_TEST(test_aesv_ecb_192_encrypt)
 
     uint8_t * d = plaintext;
     
-    aesv_ecb_192_encrypt(d, 4, key); // encrypt plaintext in place
+    aes_ecb_192_encrypt(d, 4, key); // encrypt plaintext in place
 
     MU_CHECK(memcmp(d, ciphertext, 4*BLOCKSIZE) == 0);
 }
 
 
-MU_TEST(test_aesv_ecb_192_decrypt)
+MU_TEST(test_aes_ecb_192_decrypt)
 {
     // test vectors
     uint8_t key[] = "\x8e\x73\xb0\xf7\xda\x0e\x64\x52\xc8\x10\xf3\x2b\x80\x90\x79\xe5"
@@ -83,13 +82,13 @@ MU_TEST(test_aesv_ecb_192_decrypt)
 
     uint8_t * d = ciphertext;
     
-    aesv_ecb_192_decrypt(d, 4, key); // decrypt ciphertext in place
+    aes_ecb_192_decrypt(d, 4, key); // decrypt ciphertext in place
 
     MU_CHECK(memcmp(d, plaintext, 4*BLOCKSIZE) == 0);
 }
 
 
-MU_TEST(test_aesv_ecb_256_encrypt)
+MU_TEST(test_aes_ecb_256_encrypt)
 {
     // test vectors
     uint8_t key[] = "\x60\x3d\xeb\x10\x15\xca\x71\xbe\x2b\x73\xae\xf0\x85\x7d\x77\x81"
@@ -105,13 +104,13 @@ MU_TEST(test_aesv_ecb_256_encrypt)
 
     uint8_t * d = plaintext;
     
-    aesv_ecb_256_encrypt(d, 4, key); // encrypt plaintext in place
+    aes_ecb_256_encrypt(d, 4, key); // encrypt plaintext in place
 
     MU_CHECK(memcmp(d, ciphertext, 4*BLOCKSIZE) == 0);
 }
 
 
-MU_TEST(test_aesv_ecb_256_decrypt)
+MU_TEST(test_aes_ecb_256_decrypt)
 {
     // test vectors
     uint8_t key[] = "\x60\x3d\xeb\x10\x15\xca\x71\xbe\x2b\x73\xae\xf0\x85\x7d\x77\x81"
@@ -127,7 +126,7 @@ MU_TEST(test_aesv_ecb_256_decrypt)
 
     uint8_t * d = ciphertext;
     
-    aesv_ecb_256_decrypt(d, 4, key); // decrypt ciphertext in place
+    aes_ecb_256_decrypt(d, 4, key); // decrypt ciphertext in place
 
     MU_CHECK(memcmp(d, plaintext, 4*BLOCKSIZE) == 0);
 }
