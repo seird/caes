@@ -15,7 +15,7 @@ AES implementation in C with [Intel intrinsics](https://software.intel.com/sites
 - AES-ECB-128/192/256
 
 
-## Exmaple
+## Example
 
 Encrypt/decrypt a file:
 
