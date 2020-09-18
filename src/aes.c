@@ -437,6 +437,11 @@ aes_encrypt_file(char * filename, char * savename, char * passphrase, Mode_t aes
     random_bytes(salt, SALTSIZE);
     derive_key_iv(passphrase, key_size, salt, SALTSIZE, user_key, IV);
 
+    // write the padding size
+    size_t remainder_bytes = f_in_size - blocks*BLOCKSIZE;
+    size_t padded_bytes = remainder_bytes ? BLOCKSIZE - remainder_bytes : 0;
+    fwrite(&padded_bytes, sizeof(size_t), 1, f_out);
+
     // write the salt to the output file
     fwrite(salt, 1, SALTSIZE, f_out);
 
@@ -451,13 +456,23 @@ aes_encrypt_file(char * filename, char * savename, char * passphrase, Mode_t aes
     }
 
     // encrypt the remainder blocks
-    size_t remainder_bytes = f_in_size - (blocks/BLOCKS_PER_ITERATION)*BLOCKSIZE*BLOCKS_PER_ITERATION;
-    if (remainder_bytes) {
-        if (fread(data, 1, remainder_bytes, f_in)) {
-            fptr(data, remainder_bytes/BLOCKSIZE, user_key, IV, key_size);
-            fwrite(data, 1, remainder_bytes, f_out);
+    size_t remainder_blocks = (f_in_size - (blocks/BLOCKS_PER_ITERATION)*BLOCKSIZE*BLOCKS_PER_ITERATION) / BLOCKSIZE;
+    if (remainder_blocks) {
+        if (fread(data, 1, remainder_blocks*BLOCKSIZE, f_in)) {
+            fptr(data, remainder_blocks, user_key, IV, key_size);
+            fwrite(data, 1, remainder_blocks*BLOCKSIZE, f_out);
         }
     }
+
+    // encrypt remaining bytes
+    if (padded_bytes) {
+        memset(data, 0, BLOCKSIZE);
+        if (fread(data, 1, BLOCKSIZE-padded_bytes, f_in)) {
+            fptr(data, 1, user_key, IV, key_size);
+            fwrite(data, 1, BLOCKSIZE, f_out);
+        }
+    }
+    
 
     free(data);
 
@@ -476,10 +491,13 @@ aes_decrypt_file(char * filename, char * savename, char * passphrase, Mode_t aes
 
     open_file(filename, &f_in, &f_in_size);
     if (f_in == NULL) return;
-    if (f_in_size <= SALTSIZE) return;
+    if (f_in_size <= (SALTSIZE+sizeof(size_t))) return;
 
+    // read the padding size from f_in
+    size_t padded_bytes = 0;
+    if (!fread(&padded_bytes, sizeof(size_t), 1, f_in)) return;
 
-    f_in_size -= SALTSIZE;
+    f_in_size = f_in_size - (padded_bytes > 0) * BLOCKSIZE - sizeof(size_t) - SALTSIZE;
     size_t blocks = f_in_size / BLOCKSIZE;
 
     uint8_t * data = malloc((blocks >= BLOCKS_PER_ITERATION) ? (BLOCKS_PER_ITERATION*BLOCKSIZE) : (f_in_size));
@@ -491,7 +509,6 @@ aes_decrypt_file(char * filename, char * savename, char * passphrase, Mode_t aes
 #endif
 
     if (f_out == NULL) return;
-    if (f_in_size == 0) return;
 
     // read the salt from f_in
     uint8_t salt[SALTSIZE];
@@ -512,12 +529,21 @@ aes_decrypt_file(char * filename, char * savename, char * passphrase, Mode_t aes
         ++i;
     }
 
-    // encrypt the remainder: TODO padding
+    // decrypt the remaining blocks
     size_t remainder_bytes = f_in_size - (blocks/BLOCKS_PER_ITERATION)*BLOCKSIZE*BLOCKS_PER_ITERATION;
     if (remainder_bytes) {
         if (fread(data, 1, remainder_bytes, f_in)) {
             fptr(data, remainder_bytes/BLOCKSIZE, user_key, IV, key_size);
             fwrite(data, 1, remainder_bytes, f_out);
+        }
+    }
+
+    // decrypt the remaining bytes
+    if (padded_bytes) {
+        memset(data, 0, BLOCKSIZE);
+        if (fread(data, 1, BLOCKSIZE, f_in)) {
+            fptr(data, 1, user_key, IV, key_size);
+            fwrite(data, 1, BLOCKSIZE-padded_bytes, f_out);
         }
     }
     
