@@ -11,7 +11,9 @@ print_array(uint8_t * data, size_t size)
 {
     for (size_t i=0; i<size; ++i) {
         printf("%02x ", data[i]);
-    } printf("\n");
+        if (((i+1) % BLOCKSIZE) == 0) printf("\n");
+    }
+    printf("\n-----------------------------------------------\n");
 }
 
 
@@ -25,18 +27,18 @@ main(void)
     char passphrase[] = "hunter2";
 
     // Encrypt data
-    Salt_t salt;
-    size_t size = 2*BLOCKSIZE+3;
-    uint8_t data[size];
+    size_t size = 10*BLOCKSIZE + 5;
+    uint8_t * data = (uint8_t *) malloc(size);
     uint8_t reference[size];
     memset(data, 0xab, size);
     memcpy(reference, data, size);
 
-    aes_encrypt(data, size, passphrase, aes_mode, key_size, &salt);
-    aes_decrypt(data, size, passphrase, aes_mode, key_size, &salt);
-
-    free(salt);
-
+    print_array(data, size);
+    aes_encrypt(&data, &size, passphrase, aes_mode, key_size);
+    print_array(data, size);
+    aes_decrypt(&data, &size, passphrase, aes_mode, key_size);
+    print_array(data, size);
+    
     if (memcmp(reference, data, size)) {
         printf("Fail:\n");
         printf("reference plaintext:\n");

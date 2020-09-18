@@ -25,11 +25,22 @@ Encrypt/decrypt a file:
 int
 main(void)
 {
+	// Encrypt file
 	char passphrase[] = "hunter2";	
 
 	aes_encrypt_file("in.jpg", "out.jpg.aes", passphrase, AES_CTR, AES_256);
 	aes_decrypt_file("out.jpg.aes", "out.jpg", passphrase, AES_CTR, AES_256);
 
+
+	// Encrypt data
+    size_t size = 10*BLOCKSIZE + 5;
+    uint8_t * data = (uint8_t *) malloc(size);
+    memset(data, 0xab, size);
+
+    aes_encrypt(&data, &size, passphrase, aes_mode, key_size);
+    aes_decrypt(&data, &size, passphrase, aes_mode, key_size);
+
+	
 	return 0;
 }
 ```
@@ -56,8 +67,8 @@ typedef enum Mode {
 } Mode_t;
 
 
-void aes_encrypt(uint8_t * data, size_t size, char * passphrase, Mode_t aes_mode, KeySize_t key_size, Salt_t * salt);
-void aes_decrypt(uint8_t * data, size_t size, char * passphrase, Mode_t aes_mode, KeySize_t key_size, Salt_t * salt);
+void aes_encrypt(uint8_t ** data, size_t * size, char * passphrase, Mode_t aes_mode, KeySize_t key_size);
+void aes_decrypt(uint8_t ** data, size_t * size, char * passphrase, Mode_t aes_mode, KeySize_t key_size);
 void aes_encrypt_file(char * filename, char * savename, char * passphrase, Mode_t aes_mode, KeySize_t key_size);
 void aes_decrypt_file(char * filename, char * savename, char * passphrase, Mode_t aes_mode, KeySize_t key_size);
 ```

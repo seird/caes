@@ -351,36 +351,57 @@ decrypt_fptr_t get_decrypt_fptr(Mode_t aes_mode)
 
 
 void
-aes_encrypt(uint8_t * data, size_t size, char * passphrase, Mode_t aes_mode, KeySize_t key_size, Salt_t * salt)
+aes_encrypt(uint8_t ** data, size_t * size, char * passphrase, Mode_t aes_mode, KeySize_t key_size)
 {
     encrypt_fptr_t fptr = get_encrypt_fptr(aes_mode);
 
-    size_t blocks = size / BLOCKSIZE;
-    // size_t remainder_bytes = size - blocks*BLOCKSIZE;
+    size_t blocks = *size / BLOCKSIZE;
+    size_t remainder_bytes = *size - blocks*BLOCKSIZE;
+    size_t padded_bytes = remainder_bytes ? BLOCKSIZE - remainder_bytes : 0;
+    if (padded_bytes) ++blocks;
+
+    *data = realloc(*data, *size + padded_bytes + sizeof(size_t) + SALTSIZE); // original size + padding + num padding bytes + salt
+    // pad with zeros
+    memset(*data + *size, 0, padded_bytes);
 
     uint8_t user_key[key_size];
     uint8_t IV[BLOCKSIZE];
-    *salt = (Salt_t) malloc(SALTSIZE);
-    random_bytes(*salt, SALTSIZE);
-    derive_key_iv(passphrase, key_size, *salt, SALTSIZE, user_key, IV);
+    uint8_t salt[SALTSIZE];
+    random_bytes(salt, SALTSIZE);
+    derive_key_iv(passphrase, key_size, salt, SALTSIZE, user_key, IV);
 
-    fptr(data, blocks, user_key, IV, key_size);
+    fptr(*data, blocks, user_key, IV, key_size);
+
+    // store the padding size
+    *(size_t *)(*data + *size + padded_bytes) = padded_bytes;
+    // store the salt
+    memcpy(*data + *size + padded_bytes + sizeof(size_t), salt, SALTSIZE);
+    // update the data size
+    *size = *size + padded_bytes + sizeof(size_t) + SALTSIZE;
 }
 
 
 void
-aes_decrypt(uint8_t * data, size_t size, char * passphrase, Mode_t aes_mode, KeySize_t key_size, Salt_t * salt)
+aes_decrypt(uint8_t ** data, size_t * size, char * passphrase, Mode_t aes_mode, KeySize_t key_size)
 {
     decrypt_fptr_t fptr = get_decrypt_fptr(aes_mode);
 
-    size_t blocks = size / BLOCKSIZE;
-    // size_t remainder_bytes = size - blocks*BLOCKSIZE;
+    // read the padding size
+    size_t padded_bytes = *(size_t *)(*data + *size - SALTSIZE - sizeof(size_t));
+    size_t blocks = (*size - sizeof(size_t) - SALTSIZE) / BLOCKSIZE;
 
     uint8_t user_key[key_size];
-    uint8_t IV[BLOCKSIZE];    
-    derive_key_iv(passphrase, key_size, *salt, SALTSIZE, user_key, IV);
+    uint8_t IV[BLOCKSIZE];
+    uint8_t salt[SALTSIZE];
+    memcpy(salt, *data + *size - SALTSIZE, SALTSIZE);
+    derive_key_iv(passphrase, key_size, salt, SALTSIZE, user_key, IV);
 
-    fptr(data, blocks, user_key, IV, key_size);
+    fptr(*data, blocks, user_key, IV, key_size);
+
+    // update the data size
+    *size = *size - padded_bytes - sizeof(size_t) - SALTSIZE;
+
+    *data = realloc(*data, *size);
 }
 
 

@@ -11,7 +11,7 @@
 
 
 #define BLOCKSIZE 16
-#define SALTSIZE 16
+#define SALTSIZE 32
 #define BLOCKS_PER_ITERATION 10000000 // BLOCKS_PER_ITERATION * BLOCKSIZE bytes are allocated on the heap
 
 
@@ -44,8 +44,8 @@ typedef void (* encrypt_fptr_t)(uint8_t * data, size_t blocks, uint8_t * user_ke
 typedef void (* decrypt_fptr_t)(uint8_t * data, size_t blocks, uint8_t * user_key, uint8_t IV[BLOCKSIZE], KeySize_t KeySize);
 
 
-void aes_encrypt(uint8_t * data, size_t size, char * passphrase, Mode_t aes_mode, KeySize_t key_size, Salt_t * salt);
-void aes_decrypt(uint8_t * data, size_t size, char * passphrase, Mode_t aes_mode, KeySize_t key_size, Salt_t * salt);
+void aes_encrypt(uint8_t ** data, size_t * size, char * passphrase, Mode_t aes_mode, KeySize_t key_size);
+void aes_decrypt(uint8_t ** data, size_t * size, char * passphrase, Mode_t aes_mode, KeySize_t key_size);
 void aes_encrypt_file(char * filename, char * savename, char * passphrase, Mode_t aes_mode, KeySize_t key_size);
 void aes_decrypt_file(char * filename, char * savename, char * passphrase, Mode_t aes_mode, KeySize_t key_size);
 
