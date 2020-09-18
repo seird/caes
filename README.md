@@ -25,23 +25,23 @@ Encrypt/decrypt a file:
 int
 main(void)
 {
-	// Encrypt file
-	char passphrase[] = "hunter2";	
-
-	aes_encrypt_file("in.jpg", "out.jpg.aes", passphrase, AES_CTR, AES_256);
-	aes_decrypt_file("out.jpg.aes", "out.jpg", passphrase, AES_CTR, AES_256);
-
-
-	// Encrypt data
+    // Encrypt file
+    char passphrase[] = "hunter2";	
+    
+    aes_encrypt_file("in.jpg", "out.jpg.aes", passphrase, AES_CTR, AES_256);
+    aes_decrypt_file("out.jpg.aes", "out.jpg", passphrase, AES_CTR, AES_256);
+    
+    
+    // Encrypt data
     size_t size = 10*BLOCKSIZE + 5;
     uint8_t * data = (uint8_t *) malloc(size);
     memset(data, 0xab, size);
-
+    
     aes_encrypt(&data, &size, passphrase, aes_mode, key_size);
     aes_decrypt(&data, &size, passphrase, aes_mode, key_size);
-
-	
-	return 0;
+    
+    
+    return 0;
 }
 ```
 
