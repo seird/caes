@@ -37,8 +37,8 @@ main(void)
     uint8_t * data = (uint8_t *) malloc(size);
     memset(data, 0xab, size);
     
-    aes_encrypt(&data, &size, passphrase, aes_mode, key_size);
-    aes_decrypt(&data, &size, passphrase, aes_mode, key_size);
+    aes_encrypt(&data, &size, passphrase, AES_CTR, AES_256);
+    aes_decrypt(&data, &size, passphrase, AES_CTR, AES_256);
     
     
     return 0;
