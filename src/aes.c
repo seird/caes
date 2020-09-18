@@ -399,10 +399,14 @@ aes_encrypt_file(char * filename, char * savename, char * passphrase, Mode_t aes
 
     size_t blocks = f_in_size / BLOCKSIZE;
 
-    uint8_t * data = malloc((blocks >= BLOCKS_PER_ITERATION) ? (BLOCKS_PER_ITERATION*BLOCKSIZE) : (blocks*BLOCKSIZE));
+    uint8_t * data = malloc((blocks >= BLOCKS_PER_ITERATION) ? (BLOCKS_PER_ITERATION*BLOCKSIZE) : (f_in_size));
 
-    // FILE * f_out = fopen64(savename, "wb");
+#if (_FILE_OFFSET_BITS == 64)
+    FILE * f_out = fopen64(savename, "wb");
+#else
     FILE * f_out = fopen(savename, "wb");
+#endif
+
     if (f_out == NULL) return;
 
     // derive key and IV
@@ -457,10 +461,14 @@ aes_decrypt_file(char * filename, char * savename, char * passphrase, Mode_t aes
     f_in_size -= SALTSIZE;
     size_t blocks = f_in_size / BLOCKSIZE;
 
-    uint8_t * data = malloc((blocks >= BLOCKS_PER_ITERATION) ? (BLOCKS_PER_ITERATION*BLOCKSIZE) : (blocks*BLOCKSIZE));
+    uint8_t * data = malloc((blocks >= BLOCKS_PER_ITERATION) ? (BLOCKS_PER_ITERATION*BLOCKSIZE) : (f_in_size));
 
-    // FILE * f_out = fopen64(savename, "wb");
+#if (_FILE_OFFSET_BITS == 64)
+    FILE * f_out = fopen64(savename, "wb");
+#else
     FILE * f_out = fopen(savename, "wb");
+#endif
+
     if (f_out == NULL) return;
     if (f_in_size == 0) return;
 
