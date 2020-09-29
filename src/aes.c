@@ -367,7 +367,7 @@ aes_encrypt(uint8_t ** data, size_t * size, char * passphrase, Mode_t aes_mode, 
     uint8_t user_key[key_size];
     uint8_t IV[BLOCKSIZE];
     uint8_t salt[SALTSIZE];
-    random_bytes(salt, SALTSIZE);
+    if (!random_bytes(salt, SALTSIZE)) exit(EXIT_FAILURE);
     derive_key_iv(passphrase, key_size, salt, SALTSIZE, user_key, IV);
 
     fptr(*data, blocks, user_key, IV, key_size);
@@ -434,7 +434,7 @@ aes_encrypt_file(char * filename, char * savename, char * passphrase, Mode_t aes
     uint8_t user_key[key_size];
     uint8_t IV[BLOCKSIZE];
     uint8_t salt[SALTSIZE];
-    random_bytes(salt, SALTSIZE);
+    if (!random_bytes(salt, SALTSIZE)) exit(EXIT_FAILURE);
     derive_key_iv(passphrase, key_size, salt, SALTSIZE, user_key, IV);
 
     // write the padding size

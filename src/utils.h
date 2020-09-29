@@ -1,7 +1,13 @@
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "aes.h"
 #include "argon2/argon2.h"
+
+#if defined(_WIN64) || defined(_WIN32)
+#include <windows.h>
+#include <wincrypt.h>
+#endif
 
 
 #define IV_increment(IV) {\
@@ -35,12 +41,18 @@ derive_key_iv(char * passphrase, KeySize_t key_size, Salt_t salt, size_t salt_si
 }
 
 
-static inline void
+static inline bool
 random_bytes(uint8_t * data, size_t size)
 {
-    for (size_t i=0; i<size; ++i) {
-        data[i] = rand() % 256;
-    }
+#if defined(_WIN64) || defined(_WIN32)
+    HCRYPTPROV hProv = 0; 
+    if (CryptAcquireContext(&hProv, NULL, NULL, PROV_RSA_AES, 0) == false) return false;
+    return CryptGenRandom(hProv, size, data) != 0;
+#else
+    FILE * f = fopen("/dev/urandom", "rb");
+    if (f == NULL) return false;
+    return (fread(data, 1, size, f) == size);
+#endif
 }
 
 
