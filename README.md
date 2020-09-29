@@ -76,151 +76,159 @@ void aes_decrypt_file(char * filename, char * savename, char * passphrase, Mode_
 
 ## Benchmarks
 
-Time to encrypt / decrypt a 100MB file (no parallelization/threading, reading the file takes 0.03s):
+- Buffer (in RAM) size = 160 MB
+- Averaged over 5 runs
+- No threading
 
-|                 | Encrypt  | Decrypt  |
-|-----------------|----------|---------:|
-| **aes_ctr_128** | 0.1089 s | 0.1080 s |
-| **aes_cbc_128** | 0.0924 s | 0.0501 s |
-| **aes_cfb_128** | 0.0921 s | 0.0530 s |
-| **aes_ofb_128** | 0.0917 s | 0.0901 s |
-| **aes_ecb_128** | 0.0501 s | 0.0507 s |
-| **aes_ctr_192** | 0.1179 s | 0.1178 s |
-| **aes_cbc_192** | 0.1030 s | 0.0540 s |
-| **aes_cfb_192** | 0.1028 s | 0.0567 s |
-| **aes_ofb_192** | 0.1005 s | 0.1020 s |
-| **aes_ecb_192** | 0.0540 s | 0.0550 s |
-| **aes_ctr_256** | 0.1310 s | 0.1335 s |
-| **aes_cbc_256** | 0.1160 s | 0.0640 s |
-| **aes_cfb_256** | 0.1127 s | 0.0618 s |
-| **aes_ofb_256** | 0.1108 s | 0.1125 s |
-| **aes_ecb_256** | 0.0637 s | 0.0610 s |
+
+### AES blocks
+
+|                 |  Encrypt  |  Decrypt  |
+|-----------------|:---------:|:---------:|
+|**aes_block_128**| 4790 MB/s | 4790 MB/s |
+|**aes_block_192**| 3941 MB/s | 4188 MB/s |
+|**aes_block_256**| 3653 MB/s | 3320 MB/s |
+
+
+### AES modes
+
+|                 |  Encrypt  |  Decrypt  |
+|-----------------|:---------:|:---------:|
+| **aes_ctr_128** | 1246 MB/s | 1288 MB/s |
+| **aes_cbc_128** | 1610 MB/s | 4734 MB/s |
+| **aes_cfb_128** | 1600 MB/s | 4420 MB/s |
+| **aes_ofb_128** | 1663 MB/s | 1663 MB/s |
+| **aes_ecb_128** | 5063 MB/s | 5063 MB/s |
+| **aes_ctr_192** | 1144 MB/s | 1143 MB/s |
+| **aes_cbc_192** | 1384 MB/s | 4103 MB/s |
+| **aes_cfb_192** | 1377 MB/s | 3721 MB/s |
+| **aes_ofb_192** | 1421 MB/s | 1423 MB/s |
+| **aes_ecb_192** | 4301 MB/s | 4233 MB/s |
+| **aes_ctr_256** | 1024 MB/s | 1026 MB/s |
+| **aes_cbc_256** | 1210 MB/s | 3404 MB/s |
+| **aes_cfb_256** | 1214 MB/s | 3239 MB/s |
+| **aes_ofb_256** | 1240 MB/s | 1240 MB/s |
+| **aes_ecb_256** | 3556 MB/s | 3509 MB/s |
 
 
 ```
 =================================================
 Benchmarking ...
-	Number of runs     =                   10
+        Number of runs     =                    5
 
 
 ===========================================================
 AES BLOCKS ...
 ===========================================================
-bench_aes_block_encrypt
-	  0.236200 seconds per run [2.362000 seconds total]
+bench_aes_intrinsic_block_128_encrypt
+          0.033400 seconds per run [0.167000 seconds total] [4790 MB/s]
 
-bench_aes_block_decrypt
-	  0.240600 seconds per run [2.406000 seconds total]
+bench_aes_intrinsic_block_128_decrypt
+          0.033400 seconds per run [0.167000 seconds total] [4790 MB/s]
 
-bench_aesi_intrinsic_block_128_encrypt
-	  0.009600 seconds per run [0.096000 seconds total]
+bench_aes_intrinsic_block_192_encrypt
+          0.040600 seconds per run [0.203000 seconds total] [3941 MB/s]
 
-bench_aesi_intrinsic_block_128_decrypt
-	  0.009600 seconds per run [0.096000 seconds total]
+bench_aes_intrinsic_block_192_decrypt
+          0.038200 seconds per run [0.191000 seconds total] [4188 MB/s]
 
-bench_aesi_intrinsic_block_192_encrypt
-	  0.011400 seconds per run [0.114000 seconds total]
+bench_aes_intrinsic_block_256_encrypt
+          0.043800 seconds per run [0.219000 seconds total] [3653 MB/s]
 
-bench_aesi_intrinsic_block_192_decrypt
-	  0.011200 seconds per run [0.112000 seconds total]
-
-bench_aesi_intrinsic_block_256_encrypt
-	  0.012900 seconds per run [0.129000 seconds total]
-
-bench_aesi_intrinsic_block_256_decrypt
-	  0.012900 seconds per run [0.129000 seconds total]
+bench_aes_intrinsic_block_256_decrypt
+          0.048200 seconds per run [0.241000 seconds total] [3320 MB/s]
 
 
 ===========================================================
 AES MODES ...
 ===========================================================
 bench_aes_ctr_128_encrypt
-	  0.108900 seconds per run [1.089000 seconds total]
+          0.128400 seconds per run [0.642000 seconds total] [1246 MB/s]
 
 bench_aes_ctr_128_decrypt
-	  0.108000 seconds per run [1.080000 seconds total]
+          0.124200 seconds per run [0.621000 seconds total] [1288 MB/s]
 
 bench_aes_cfb_128_encrypt
-	  0.092100 seconds per run [0.921000 seconds total]
+          0.100000 seconds per run [0.500000 seconds total] [1600 MB/s]
 
 bench_aes_cfb_128_decrypt
-	  0.053000 seconds per run [0.530000 seconds total]
+          0.036200 seconds per run [0.181000 seconds total] [4420 MB/s]
 
 bench_aes_ofb_128_encrypt
-	  0.091700 seconds per run [0.917000 seconds total]
+          0.096200 seconds per run [0.481000 seconds total] [1663 MB/s]
 
 bench_aes_ofb_128_decrypt
-	  0.090100 seconds per run [0.901000 seconds total]
+          0.096200 seconds per run [0.481000 seconds total] [1663 MB/s]
 
 bench_aes_ecb_128_encrypt
-	  0.050100 seconds per run [0.501000 seconds total]
+          0.031600 seconds per run [0.158000 seconds total] [5063 MB/s]
 
 bench_aes_ecb_128_decrypt
-	  0.050700 seconds per run [0.507000 seconds total]
+          0.031600 seconds per run [0.158000 seconds total] [5063 MB/s]
 
 bench_aes_cbc_128_encrypt
-	  0.092400 seconds per run [0.924000 seconds total]
+          0.099400 seconds per run [0.497000 seconds total] [1610 MB/s]
 
 bench_aes_cbc_128_decrypt
-	  0.050100 seconds per run [0.500999 seconds total]
+          0.033800 seconds per run [0.169000 seconds total] [4734 MB/s]
 
 bench_aes_ctr_192_encrypt
-	  0.117900 seconds per run [1.179001 seconds total]
+          0.139800 seconds per run [0.699000 seconds total] [1144 MB/s]
 
 bench_aes_ctr_192_decrypt
-	  0.117800 seconds per run [1.177999 seconds total]
+          0.140000 seconds per run [0.700000 seconds total] [1143 MB/s]
 
 bench_aes_cfb_192_encrypt
-	  0.102800 seconds per run [1.028001 seconds total]
+          0.116200 seconds per run [0.581000 seconds total] [1377 MB/s]
 
 bench_aes_cfb_192_decrypt
-	  0.056700 seconds per run [0.566999 seconds total]
+          0.043000 seconds per run [0.215000 seconds total] [3721 MB/s]
 
 bench_aes_ofb_192_encrypt
-	  0.100500 seconds per run [1.004999 seconds total]
+          0.112600 seconds per run [0.563000 seconds total] [1421 MB/s]
 
 bench_aes_ofb_192_decrypt
-	  0.102000 seconds per run [1.020000 seconds total]
+          0.112400 seconds per run [0.562000 seconds total] [1423 MB/s]
 
 bench_aes_ecb_192_encrypt
-	  0.054000 seconds per run [0.540001 seconds total]
+          0.037200 seconds per run [0.186000 seconds total] [4301 MB/s]
 
 bench_aes_ecb_192_decrypt
-	  0.055000 seconds per run [0.549999 seconds total]
+          0.037800 seconds per run [0.189000 seconds total] [4233 MB/s]
 
 bench_aes_cbc_192_encrypt
-	  0.103000 seconds per run [1.030001 seconds total]
+          0.115600 seconds per run [0.578000 seconds total] [1384 MB/s]
 
 bench_aes_cbc_192_decrypt
-	  0.054000 seconds per run [0.539999 seconds total]
+          0.039000 seconds per run [0.195000 seconds total] [4103 MB/s]
 
 bench_aes_ctr_256_encrypt
-	  0.131000 seconds per run [1.309999 seconds total]
+          0.156200 seconds per run [0.781000 seconds total] [1024 MB/s]
 
 bench_aes_ctr_256_decrypt
-	  0.133500 seconds per run [1.335001 seconds total]
+          0.156000 seconds per run [0.780000 seconds total] [1026 MB/s]
 
 bench_aes_cfb_256_encrypt
-	  0.112700 seconds per run [1.127001 seconds total]
+          0.131800 seconds per run [0.659000 seconds total] [1214 MB/s]
 
 bench_aes_cfb_256_decrypt
-	  0.061800 seconds per run [0.617998 seconds total]
+          0.049400 seconds per run [0.247000 seconds total] [3239 MB/s]
 
 bench_aes_ofb_256_encrypt
-	  0.110800 seconds per run [1.108002 seconds total]
+          0.129000 seconds per run [0.645000 seconds total] [1240 MB/s]
 
 bench_aes_ofb_256_decrypt
-	  0.112500 seconds per run [1.125000 seconds total]
+          0.129000 seconds per run [0.645000 seconds total] [1240 MB/s]
 
 bench_aes_ecb_256_encrypt
-	  0.063700 seconds per run [0.636999 seconds total]
+          0.045000 seconds per run [0.224999 seconds total] [3556 MB/s]
 
 bench_aes_ecb_256_decrypt
-	  0.061000 seconds per run [0.610001 seconds total]
+          0.045600 seconds per run [0.228000 seconds total] [3509 MB/s]
 
 bench_aes_cbc_256_encrypt
-	  0.116000 seconds per run [1.160000 seconds total]
+          0.132200 seconds per run [0.661000 seconds total] [1210 MB/s]
 
 bench_aes_cbc_256_decrypt
-	  0.064000 seconds per run [0.639999 seconds total]
+          0.047000 seconds per run [0.235001 seconds total] [3404 MB/s]
 ```

@@ -7,6 +7,9 @@
 static void
 aes_ctr(uint8_t * data, size_t blocks, struct RoundKeys * RoundKeysEncrypt, uint8_t IV[BLOCKSIZE])
 {    
+    /*
+    would be more efficient with aesv_block_encrypt that takes a SIMD input
+    */
     for (size_t b=0; b<blocks; ++b) {
         // Encrypt IV
         __m128i vIV_aes = aes_block_encrypt(IV, RoundKeysEncrypt);
