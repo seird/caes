@@ -15,34 +15,34 @@ AES implementation in C with [Intel intrinsics](https://software.intel.com/sites
 - AES-ECB-128/192/256
 
 
-## Example
+## Command line utility
 
-Encrypt/decrypt a file:
 
-```c
-#include "aes.h"
+### Build
 
-int
-main(void)
-{
-    // Encrypt file
-    char passphrase[] = "hunter2";	
-    
-    aes_encrypt_file("in.jpg", "out.jpg.aes", passphrase, AES_CTR, AES_256);
-    aes_decrypt_file("out.jpg.aes", "out.jpg", passphrase, AES_CTR, AES_256);
-    
-    
-    // Encrypt data
-    size_t size = 10*BLOCKSIZE + 5;
-    uint8_t * data = (uint8_t *) malloc(size);
-    memset(data, 0xab, size);
-    
-    aes_encrypt(&data, &size, passphrase, AES_CTR, AES_256);
-    aes_decrypt(&data, &size, passphrase, AES_CTR, AES_256);
-    
-    
-    return 0;
-}
+```
+make build
+```
+
+### Usage
+```
+Usage: aes.exe -[e|d] [-m=mode] [-s=size] -i file_in -o file_out PASSPHRASE
+
+-e              encrypt
+-d              decrypt
+-i=file_in      path to file to encrypt
+-o=file_out     path to encrypted output file
+-m=mode         AES mode: ctr, cbc, ofb, cfb or ecb; default ctr
+-s=size         AES key size: 128, 192 or 256; default 256
+```
+
+### Example
+```
+# Encrypt in.jpg
+./aes.exe -e -i in.jpg -o out.jpg.aes hunter2
+
+# Decrypt in.jpg.aes
+./aes.exe -d -i out.jpg.aes -o out.jpg hunter2
 ```
 
 
@@ -73,6 +73,36 @@ void aes_encrypt_file(char * filename, char * savename, char * passphrase, Mode_
 void aes_decrypt_file(char * filename, char * savename, char * passphrase, Mode_t aes_mode, KeySize_t key_size);
 ```
 
+
+### Api Example
+
+Encrypt/decrypt a file:
+
+```c
+#include "aes.h"
+
+int
+main(void)
+{
+    // Encrypt file
+    char passphrase[] = "hunter2";	
+    
+    aes_encrypt_file("in.jpg", "out.jpg.aes", passphrase, AES_CTR, AES_256);
+    aes_decrypt_file("out.jpg.aes", "out.jpg", passphrase, AES_CTR, AES_256);
+    
+    
+    // Encrypt data
+    size_t size = 10*BLOCKSIZE + 5;
+    uint8_t * data = (uint8_t *) malloc(size);
+    memset(data, 0xab, size);
+    
+    aes_encrypt(&data, &size, passphrase, AES_CTR, AES_256);
+    aes_decrypt(&data, &size, passphrase, AES_CTR, AES_256);
+    
+    
+    return 0;
+}
+```
 
 ## Benchmarks
 

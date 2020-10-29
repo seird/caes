@@ -7,10 +7,10 @@ SRC_BENCH = $(SRC) benchmark/*.c
 
 
 build: 
-	$(CC) $(CFLAGS_RELEASE) $(SRC) -o a_release.exe
+	$(CC) $(CFLAGS_RELEASE) $(SRC) -o aes.exe
 
 run: build
-	./a_release.exe
+	./aes.exe
 
 debug:
 	$(CC) $(CFLAGS_DEBUG) $(SRC) -o a_debug.exe 
@@ -22,7 +22,7 @@ memcheck: debug
 	valgrind --leak-check=yes ./a_debug.exe
 
 cache: build
-	valgrind --tool=cachegrind ./a_release.exe
+	valgrind --tool=cachegrind ./aes.exe
 	#cg_annotate cachegrind.out.{PID}
 
 test:
