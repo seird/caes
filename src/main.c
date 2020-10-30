@@ -24,6 +24,21 @@ print_usage(char * s)
 }
 
 
+static char *
+_strlwr(char * s)
+{
+    char * l = strdup(s);
+    char * _l = l;
+    while (*_l) {
+        if (*_l >= 'A' && *_l <= 'Z') {
+            *_l += 'a'-'A';
+        }
+        _l++;
+    }
+    return l;
+}
+
+
 int
 main(int argc, char * argv[])
 {
@@ -64,7 +79,7 @@ main(int argc, char * argv[])
             }
             break;
         case 'm':
-            mode_temp = strlwr(optarg);
+            mode_temp = _strlwr(optarg);
             if (strcmp(mode_temp, "ctr") == 0) {
                 mode = AES_CTR;
             } else if (strcmp(mode_temp, "cbc") == 0) {
@@ -76,6 +91,7 @@ main(int argc, char * argv[])
             } else if (strcmp(mode_temp, "ecb") == 0) {
                 mode = AES_ECB;
             }
+            free(mode_temp);
             break;
         case '?':
             print_usage(argv[0]);
@@ -101,6 +117,9 @@ main(int argc, char * argv[])
     } else {
         aes_decrypt_file(fin, fout, argv[optind], mode, key_size);
     }
+
+    free(fin);
+    free(fout);
 
     return EXIT_SUCCESS;    
 }
