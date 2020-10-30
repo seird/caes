@@ -26,14 +26,14 @@ make build
 
 ### Usage
 ```
-Usage: aes.exe -[e|d] [-m=mode] [-s=size] -i file_in -o file_out PASSPHRASE
+Usage: aes.exe -[e|d] [-m mode] [-s size] -i file_in -o file_out PASSPHRASE
 
--e              encrypt
--d              decrypt
--i=file_in      path to file to encrypt
--o=file_out     path to encrypted output file
--m=mode         AES mode: ctr, cbc, ofb, cfb or ecb; default ctr
--s=size         AES key size: 128, 192 or 256; default 256
+-e                encrypt
+-d                decrypt
+-i <file_in>      path to file to encrypt
+-o <file_out>     path to encrypted output file
+-m <mode>         AES mode: ctr, cbc, ofb, cfb or ecb; default ctr
+-s <size>         AES key size: 128, 192 or 256; default 256
 ```
 
 ### Example

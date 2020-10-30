@@ -12,20 +12,20 @@
 static void
 print_usage(char * s)
 {
-    printf("Usage: %s -[e|d] [-m=mode] [-s=size] -i file_in -o file_out PASSPHRASE\n"
+    printf("Usage: %s -[e|d] [-m mode] [-s size] -i file_in -o file_out PASSPHRASE\n"
            "\n"
-           "-e              encrypt\n"
-           "-d              decrypt\n"
-           "-i=file_in      path to file to encrypt\n"
-           "-o=file_out     path to encrypted output file\n"
-           "-m=mode         AES mode: ctr, cbc, ofb, cfb or ecb; default ctr\n"
-           "-s=size         AES key size: 128, 192 or 256; default 256\n",
+           "-e                encrypt\n"
+           "-d                decrypt\n"
+           "-i <file_in>      path to file to encrypt\n"
+           "-o <file_out>     path to encrypted output file\n"
+           "-m <mode>         AES mode: ctr, cbc, ofb, cfb or ecb; default ctr\n"
+           "-s <size>         AES key size: 128, 192 or 256; default 256\n",
            s);
 }
 
 
 static char *
-_strlwr(char * s)
+__strlwr(char * s)
 {
     char * l = strdup(s);
     char * _l = l;
@@ -79,7 +79,7 @@ main(int argc, char * argv[])
             }
             break;
         case 'm':
-            mode_temp = _strlwr(optarg);
+            mode_temp = __strlwr(optarg);
             if (strcmp(mode_temp, "ctr") == 0) {
                 mode = AES_CTR;
             } else if (strcmp(mode_temp, "cbc") == 0) {
