@@ -51,7 +51,9 @@ random_bytes(uint8_t * data, size_t size)
 #else
     FILE * f = fopen("/dev/urandom", "rb");
     if (f == NULL) return false;
-    return (fread(data, 1, size, f) == size);
+    size_t nread = fread(data, 1, size, f);
+    fclose(f);
+    return nread == size;
 #endif
 }
 

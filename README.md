@@ -26,7 +26,7 @@ make build
 
 ### Usage
 ```
-Usage: aes.exe -[e|d] [-m mode] [-s size] -i file_in -o file_out PASSPHRASE
+Usage: aes.exe -[e|d] [-m mode] [-s size] -i file_in -o file_out [PASSPHRASE]
 
 -e                encrypt
 -d                decrypt
@@ -39,10 +39,15 @@ Usage: aes.exe -[e|d] [-m mode] [-s size] -i file_in -o file_out PASSPHRASE
 ### Example
 ```
 # Encrypt in.jpg
-./aes.exe -e -i in.jpg -o out.jpg.aes hunter2
+$ ./aes.exe -e -i in.jpg -o out.jpg.aes hunter2
 
 # Decrypt in.jpg.aes
-./aes.exe -d -i out.jpg.aes -o out.jpg hunter2
+$ ./aes.exe -d -i out.jpg.aes -o out.jpg hunter2
+
+# Or enter the passphrase interactively
+$ ./aes.exe -e -i in.jpg -o out.jpg.aes
+Enter password:
+Repeat password:
 ```
 
 

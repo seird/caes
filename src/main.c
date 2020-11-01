@@ -3,7 +3,15 @@
 #include <unistd.h>
 #include <string.h>
 
+#if defined(_WIN32) || defined(_WIN64)
+#include <windows.h>
+#else
+#include <termios.h>
+#endif
+
 #include "aes.h"
+
+#define PASSLENGTH 256
 
 
 #if (!defined(TEST) && !defined(SHARED) && !defined(BENCHMARK))
@@ -12,7 +20,7 @@
 static void
 print_usage(char * s)
 {
-    printf("Usage: %s -[e|d] [-m mode] [-s size] -i file_in -o file_out PASSPHRASE\n"
+    printf("Usage: %s -[e|d] [-m mode] [-s size] -i file_in -o file_out [PASSPHRASE]\n"
            "\n"
            "-e                encrypt\n"
            "-d                decrypt\n"
@@ -30,9 +38,7 @@ __strlwr(char * s)
     char * l = strdup(s);
     char * _l = l;
     while (*_l) {
-        if (*_l >= 'A' && *_l <= 'Z') {
-            *_l += 'a'-'A';
-        }
+        *_l += ('a'-'A') * (*_l >= 'A' && *_l <= 'Z');
         _l++;
     }
     return l;
@@ -102,20 +108,70 @@ main(int argc, char * argv[])
         }
     }
 
-    if (optind >= argc) {
+    if ((fin == NULL) || (fout == NULL)) {
         print_usage(argv[0]);
         return EXIT_FAILURE;
     }
+    
+    char * passphrase = NULL;
+    char buffer[PASSLENGTH];
+    if (optind < argc) {
+        // passphrase is supplied via the command line
+        passphrase = argv[optind];
+    } else {
+        // ask for passphrase
 
-    if ((fin == NULL) || (fout == NULL)) {
+        // hide input
+        #if defined(_WIN32) || defined(_WIN64)
+            // https://docs.microsoft.com/en-us/windows/console/setconsolemode
+            HANDLE hConsoleHandle = GetStdHandle(STD_INPUT_HANDLE);
+            SetConsoleMode(hConsoleHandle, ~ENABLE_ECHO_INPUT);      
+        #elif __linux__
+            // https://www.gnu.org/software/libc/manual/html_node/getpass.html
+            struct termios old, new;
+            tcgetattr(fileno(stdin), &old);
+            new = old;
+            new.c_lflag &= ~ECHO;
+            (void) tcsetattr(fileno(stdin), TCSAFLUSH, &new);
+        #endif
+
+        printf("Enter password:");
+        if ((passphrase = fgets(buffer, sizeof(buffer), stdin)) == NULL)
+            return EXIT_FAILURE;
+
+        if (encrypting) {
+            // Ask for confirmation
+            char buffer2[sizeof(buffer)];
+            printf("\nRepeat password:");
+            if (fgets(buffer2, sizeof(buffer2), stdin) == NULL)
+                return EXIT_FAILURE;
+
+            if (memcmp(buffer, buffer2, strlen(buffer)) != 0) {
+                printf("\nIncorrect password.\n");
+                return EXIT_FAILURE;
+            }
+        }
+        printf("\n");
+        
+        passphrase[strlen(passphrase)-1] = '\0';
+
+        // Restore input
+        #if defined(_WIN32) || defined(_WIN64)
+            SetConsoleMode(hConsoleHandle, ENABLE_ECHO_INPUT);       
+        #elif __linux__
+            (void) tcsetattr(fileno(stdin), TCSAFLUSH, &old);
+        #endif
+    }
+
+    if (passphrase == NULL) {
         print_usage(argv[0]);
         return EXIT_FAILURE;
     }
 
     if (encrypting) {
-        aes_encrypt_file(fin, fout, argv[optind], mode, key_size);
+        aes_encrypt_file(fin, fout, passphrase, mode, key_size);
     } else {
-        aes_decrypt_file(fin, fout, argv[optind], mode, key_size);
+        aes_decrypt_file(fin, fout, passphrase, mode, key_size);
     }
 
     free(fin);
@@ -123,4 +179,4 @@ main(int argc, char * argv[])
 
     return EXIT_SUCCESS;    
 }
-#endif
+#endif // !defined(TEST) && !defined(SHARED) && !defined(BENCHMARK))

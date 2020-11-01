@@ -19,7 +19,7 @@ profile: debug
 	valgrind --tool=callgrind ./a_debug.exe
 
 memcheck: debug
-	valgrind --leak-check=yes ./a_debug.exe
+	valgrind --leak-check=full --show-leak-kinds=all ./a_debug.exe -e -i makefile -o makefile.aes hunter2
 
 cache: build
 	valgrind --tool=cachegrind ./aes.exe
