@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "aes.h"
+#include "aesi.h"
 #include "argon2/argon2.h"
 
 #if defined(_WIN64) || defined(_WIN32)

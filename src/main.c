@@ -2,6 +2,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <string.h>
+#include <stdio.h>
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
@@ -11,10 +12,11 @@
 
 #include "aes.h"
 
-#define PASSLENGTH 256
-
 
 #if (!defined(TEST) && !defined(SHARED) && !defined(BENCHMARK))
+
+
+#define PASSLENGTH 256
 
 
 static void

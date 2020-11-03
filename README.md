@@ -21,7 +21,7 @@ AES implementation in C with [Intel intrinsics](https://software.intel.com/sites
 ### Build
 
 ```
-make build
+make
 ```
 
 ### Usage
@@ -53,7 +53,15 @@ Repeat password:
 
 ## Api
 
-Intel intrinsics in `src/aes.h`:
+### Build
+
+```
+make lib
+```
+
+### Usage
+
+Include the header `include/aes.h`:
 
 ```c
 typedef enum KeySize {
@@ -72,9 +80,13 @@ typedef enum Mode {
 } Mode_t;
 
 
+/* Encrypt bytes on the heap */
 void aes_encrypt(uint8_t ** data, size_t * size, char * passphrase, Mode_t aes_mode, KeySize_t key_size);
+/* Decrypt bytes on the heap */
 void aes_decrypt(uint8_t ** data, size_t * size, char * passphrase, Mode_t aes_mode, KeySize_t key_size);
+/* Encrypt a file */
 void aes_encrypt_file(char * filename, char * savename, char * passphrase, Mode_t aes_mode, KeySize_t key_size);
+/* Decrypt a file */
 void aes_decrypt_file(char * filename, char * savename, char * passphrase, Mode_t aes_mode, KeySize_t key_size);
 ```
 

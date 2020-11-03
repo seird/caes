@@ -9,6 +9,9 @@ SRC_BENCH = $(SRC) benchmark/*.c
 build: 
 	$(CC) $(CFLAGS_RELEASE) $(SRC) -o aes.exe
 
+lib:
+	$(CC) $(CFLAGS_RELEASE) -shared -fPIC $(SRC) -o aes.dll
+
 run: build
 	./aes.exe
 
