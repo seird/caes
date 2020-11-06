@@ -62,15 +62,9 @@ static inline void
 open_file(char * filename, FILE ** fptr, size_t * file_size)
 {
     // Read data from file
-#if (_FILE_OFFSET_BITS == 64)
-    *fptr = fopen64(filename, "rb");
-    fseeko64(*fptr, 0, SEEK_END);
-    *file_size = (size_t) ftello64(*fptr);
-#else
     *fptr = fopen(filename, "rb");
     fseek(*fptr, 0, SEEK_END);
     *file_size = (size_t) ftell(*fptr);
-#endif
 
     rewind(*fptr);
 }

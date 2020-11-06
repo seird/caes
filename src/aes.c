@@ -422,11 +422,7 @@ aes_encrypt_file(char * filename, char * savename, char * passphrase, Mode_t aes
 
     uint8_t * data = malloc((blocks >= BLOCKS_PER_ITERATION) ? (BLOCKS_PER_ITERATION*BLOCKSIZE) : (f_in_size));
 
-#if (_FILE_OFFSET_BITS == 64)
-    FILE * f_out = fopen64(savename, "wb");
-#else
     FILE * f_out = fopen(savename, "wb");
-#endif
 
     if (f_out == NULL) return;
 
@@ -502,11 +498,7 @@ aes_decrypt_file(char * filename, char * savename, char * passphrase, Mode_t aes
 
     uint8_t * data = malloc((blocks >= BLOCKS_PER_ITERATION) ? (BLOCKS_PER_ITERATION*BLOCKSIZE) : (f_in_size));
 
-#if (_FILE_OFFSET_BITS == 64)
-    FILE * f_out = fopen64(savename, "wb");
-#else
     FILE * f_out = fopen(savename, "wb");
-#endif
 
     if (f_out == NULL) return;
 
