@@ -1,9 +1,35 @@
 CC = gcc
 CFLAGS_DEBUG = -g -Wall -Wextra -mavx2 -maes -pthread -D_FILE_OFFSET_BITS=64 #-shared
 CFLAGS_RELEASE = -O3 -Wall -Wextra -mavx2 -maes -pthread -D_FILE_OFFSET_BITS=64 #-shared
-SRC = src/*.c src/argon2/argon2.c src/argon2/core.c src/argon2/blake2/blake2b.c src/argon2/thread.c src/argon2/encoding.c src/argon2/opt.c
-SRC_TEST = $(SRC) tests/*.c
-SRC_BENCH = $(SRC) benchmark/*.c
+
+SRC = \
+	src/aes.c \
+	src/main.c \
+	src/modes.c \
+	src/argon2/argon2.c \
+	src/argon2/core.c \
+	src/argon2/blake2/blake2b.c \
+	src/argon2/thread.c \
+	src/argon2/encoding.c \
+	src/argon2/opt.c \
+
+SRC_TEST = \
+	$(SRC) \
+	tests/tests.c \
+	tests/test_aes.c \
+	tests/test_aes_cbc.c \
+	tests/test_aes_cfb.c \
+	tests/test_aes_ctr.c \
+	tests/test_aes_ecb.c \
+	tests/test_aes_ofb.c \
+
+SRC_BENCH = \
+	$(SRC) \
+	benchmark/benchmarks.c \
+	benchmark/bench_aes_block.c \
+	benchmark/bench_aes_modes_128.c \
+	benchmark/bench_aes_modes_192.c \
+	benchmark/bench_aes_modes_256.c \
 
 
 build: 
