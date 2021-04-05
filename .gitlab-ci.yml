@@ -26,4 +26,4 @@ test:
     reports:
       cobertura: coverage.xml
     paths:
-      - "*.html
+      - "*.html"
