@@ -20,6 +20,7 @@ test:
   script:
     - gcc --version
     - make test
+    - make clean
     - make coverage_html
   coverage: /^\s*lines:\s*\d+.\d+\%/
   artifacts:

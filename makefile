@@ -90,7 +90,7 @@ test:
 coverage_html:
 	$(CC) $(CFLAGS_TEST) -DTEST $(SRC_TEST) -o test.exe
 	./test.exe
-	gcovr -e src/argon2/* --html --html-details --exclude-unreachable-branches --print-summary -o coverage.html
+	gcovr -e "src/argon2/*" --html --html-details --exclude-unreachable-branches --print-summary -o coverage.html
 
 bench:
 	$(CC) $(CFLAGS_RELEASE) -DBENCHMARK $(SRC_BENCH) -o benchmark.exe
