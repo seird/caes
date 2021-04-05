@@ -1,6 +1,6 @@
 # AES
 
-[![pipeline status](https://gitlab.com/kdries/caes/badges/master/pipeline.svg)](https://gitlab.com/kdries/caes/commits/master)
+[![pipeline status](https://gitlab.com/kdries/caes/badges/master/pipeline.svg)](https://gitlab.com/kdries/caes/commits/master) [![coverage](https://gitlab.com/kdries/caes/badges/master/coverage.svg)](https://gitlab.com/kdries/caes/builds/artifacts/master/file/coverage.html?job=test)
 
 
 AES implementation in C with [Intel intrinsics](https://software.intel.com/sites/landingpage/IntrinsicsGuide/#cats=Cryptography).

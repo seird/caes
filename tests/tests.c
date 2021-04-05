@@ -43,6 +43,11 @@ ALL_TESTS()
     MU_RUN_TEST(test_aes_ofb_256_decrypt);
     MU_RUN_TEST(test_aes_cbc_256_encrypt);
     MU_RUN_TEST(test_aes_cbc_256_decrypt);
+
+    MU_RUN_TEST(test_file);
+    MU_RUN_TEST(test_file_incorrect_pass);
+    MU_RUN_TEST(test_heap);
+    MU_RUN_TEST(test_heap_incorrect_pass);
 }
 
 int

@@ -9,7 +9,13 @@
 
 
 #define SALTSIZE 32
-#define BLOCKS_PER_ITERATION 10000000 // BLOCKS_PER_ITERATION * BLOCKSIZE bytes are allocated on the heap
+
+// BLOCKS_PER_ITERATION * BLOCKSIZE bytes are allocated on the heap
+#ifdef TEST
+#define BLOCKS_PER_ITERATION 60 
+#else
+#define BLOCKS_PER_ITERATION 10000000
+#endif
 
 #if ((_FILE_OFFSET_BITS == 64) && (defined(_WIN64) || defined(_WIN32)))
 #define fopen fopen64

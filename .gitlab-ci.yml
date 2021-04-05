@@ -15,6 +15,15 @@ build:
 
 test:
   stage: test
+  before_script:
+    - apt update && apt install -y gcovr
   script:
     - gcc --version
     - make test
+    - make coverage_html
+  coverage: /^\s*lines:\s*\d+.\d+\%/
+  artifacts:
+    reports:
+      cobertura: coverage.xml
+    paths:
+      - "*.html

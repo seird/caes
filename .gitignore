@@ -4,4 +4,9 @@
 *.out.*
 *.lst
 *.exe
+*.gcno
+*.gcda
+*.xml
+*.html
+*.bytes
 file_bench

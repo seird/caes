@@ -1,6 +1,7 @@
 CC = gcc
 CFLAGS_DEBUG = -g -Wall -Wextra -mavx2 -maes -pthread -D_FILE_OFFSET_BITS=64 #-shared
 CFLAGS_RELEASE = -O3 -Wall -Wextra -mavx2 -maes -pthread -D_FILE_OFFSET_BITS=64 #-shared
+CFLAGS_TEST = -O0 -Wall -Wextra -mavx2 -maes -pthread -D_FILE_OFFSET_BITS=64 -fprofile-arcs -ftest-coverage
 
 SRC = \
 	src/aes.c \
@@ -22,6 +23,8 @@ SRC_TEST = \
 	tests/test_aes_ctr.c \
 	tests/test_aes_ecb.c \
 	tests/test_aes_ofb.c \
+	tests/test_file.c \
+	tests/test_heap.c \
 
 SRC_BENCH = \
 	$(SRC) \
@@ -30,6 +33,31 @@ SRC_BENCH = \
 	benchmark/bench_aes_modes_128.c \
 	benchmark/bench_aes_modes_192.c \
 	benchmark/bench_aes_modes_256.c \
+
+
+ifeq ($(OS),Windows_NT)
+	PLATFORM_OS = WINDOWS
+else
+	UNAMEOS = $(shell uname)
+	ifeq ($(UNAMEOS),Linux)
+		PLATFORM_OS = LINUX
+	endif
+	ifeq ($(UNAMEOS),FreeBSD)
+		PLATFORM_OS = BSD
+	endif
+	ifeq ($(UNAMEOS),OpenBSD)
+		PLATFORM_OS = BSD
+	endif
+	ifeq ($(UNAMEOS),NetBSD)
+		PLATFORM_OS = BSD
+	endif
+	ifeq ($(UNAMEOS),DragonFly)
+		PLATFORM_OS = BSD
+	endif
+	ifeq ($(UNAMEOS),Darwin)
+		PLATFORM_OS = OSX
+	endif
+endif
 
 
 build: 
@@ -55,13 +83,29 @@ cache: build
 	#cg_annotate cachegrind.out.{PID}
 
 test:
-	$(CC) $(CFLAGS_RELEASE) -DTEST $(SRC_TEST) -o test.exe
+	$(CC) $(CFLAGS_TEST) -DTEST $(SRC_TEST) -o test.exe
 	./test.exe
+	gcovr -e "src/argon2/*" --xml-pretty --exclude-unreachable-branches --print-summary -o coverage.xml
+
+coverage_html:
+	$(CC) $(CFLAGS_TEST) -DTEST $(SRC_TEST) -o test.exe
+	./test.exe
+	gcovr -e src/argon2/* --html --html-details --exclude-unreachable-branches --print-summary -o coverage.html
 
 bench:
 	$(CC) $(CFLAGS_RELEASE) -DBENCHMARK $(SRC_BENCH) -o benchmark.exe
 	./benchmark.exe
 
 clean:
-	rm --force *.exe
-	rm --force *.out.*
+ifeq ($(PLATFORM_OS),WINDOWS)
+	del *.o /s
+	del *.exe /s
+	del *.dll /s
+	del *.out.* /s
+	del *.so /s
+	del *.a /s
+	del *.gcda /s
+	del *.gcno /s
+else
+	rm -fv *.o *.exe *.dll *.so *.out.* *.a *.gcda *.gcno
+endif

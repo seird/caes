@@ -40,4 +40,9 @@ MU_TEST(test_aes_ofb_256_decrypt);
 MU_TEST(test_aes_cbc_256_encrypt);
 MU_TEST(test_aes_cbc_256_decrypt);
 
+MU_TEST(test_file);
+MU_TEST(test_file_incorrect_pass);
+MU_TEST(test_heap);
+MU_TEST(test_heap_incorrect_pass);
+
 #endif
