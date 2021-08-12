@@ -1,12 +1,10 @@
 CC = gcc
-CFLAGS_DEBUG = -g -Wall -Wextra -mavx2 -maes -pthread -D_FILE_OFFSET_BITS=64 #-shared
-CFLAGS_RELEASE = -O3 -Wall -Wextra -mavx2 -maes -pthread -D_FILE_OFFSET_BITS=64 #-shared
-CFLAGS_TEST = -O0 -Wall -Wextra -mavx2 -maes -pthread -D_FILE_OFFSET_BITS=64 -fprofile-arcs -ftest-coverage
+CFLAGS_DEBUG = -g -Wall -Wextra -Wshadow -mavx2 -maes -pthread -D_FILE_OFFSET_BITS=64 #-shared
+CFLAGS_RELEASE = -O3 -Wall -Wextra -Wshadow -mavx2 -maes -pthread -D_FILE_OFFSET_BITS=64 #-shared
+CFLAGS_TEST = -O0 -Wall -Wextra -Wshadow -mavx2 -maes -pthread -D_FILE_OFFSET_BITS=64 -fprofile-arcs -ftest-coverage
 
 SRC = \
-	src/aes.c \
-	src/main.c \
-	src/modes.c \
+	$(wildcard src/*.c) \
 	src/argon2/argon2.c \
 	src/argon2/core.c \
 	src/argon2/blake2/blake2b.c \
@@ -16,23 +14,11 @@ SRC = \
 
 SRC_TEST = \
 	$(SRC) \
-	tests/tests.c \
-	tests/test_aes.c \
-	tests/test_aes_cbc.c \
-	tests/test_aes_cfb.c \
-	tests/test_aes_ctr.c \
-	tests/test_aes_ecb.c \
-	tests/test_aes_ofb.c \
-	tests/test_file.c \
-	tests/test_heap.c \
+	$(wildcard tests/*.c) \
 
 SRC_BENCH = \
 	$(SRC) \
-	benchmark/benchmarks.c \
-	benchmark/bench_aes_block.c \
-	benchmark/bench_aes_modes_128.c \
-	benchmark/bench_aes_modes_192.c \
-	benchmark/bench_aes_modes_256.c \
+	$(wildcard benchmark/*.c) \
 
 
 ifeq ($(OS),Windows_NT)
@@ -85,12 +71,12 @@ cache: build
 test:
 	$(CC) $(CFLAGS_TEST) -DTEST $(SRC_TEST) -o test.exe
 	./test.exe
-	gcovr -e "src/argon2/*" --xml-pretty --exclude-unreachable-branches --print-summary -o coverage.xml
+	gcovr -e "src/argon2/*" -e "tests/*" --xml-pretty --exclude-unreachable-branches --print-summary -o coverage.xml
 
 coverage_html:
 	$(CC) $(CFLAGS_TEST) -DTEST $(SRC_TEST) -o test.exe
 	./test.exe
-	gcovr -e "src/argon2/*" --html --html-details --exclude-unreachable-branches --print-summary -o coverage.html
+	gcovr -e "src/argon2/*" -e "tests/*" --html --html-details --exclude-unreachable-branches --print-summary -o coverage.html
 
 bench:
 	$(CC) $(CFLAGS_RELEASE) -DBENCHMARK $(SRC_BENCH) -o benchmark.exe
@@ -106,6 +92,8 @@ ifeq ($(PLATFORM_OS),WINDOWS)
 	del *.a /s
 	del *.gcda /s
 	del *.gcno /s
+	del *.css /s
+	del *.html /s
 else
-	rm -fv *.o *.exe *.dll *.so *.out.* *.a *.gcda *.gcno
+	rm -fv *.o *.exe *.dll *.so *.out.* *.a *.gcda *.gcno *.css *.html
 endif
